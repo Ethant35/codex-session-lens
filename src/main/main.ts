@@ -65,7 +65,7 @@ app.whenReady().then(async () => {
     for (const key of ['compact','alwaysOnTop','paused'] as const) if (v[key] !== undefined && typeof v[key] !== 'boolean') throw new Error('Invalid setting');
     if (v.directories !== undefined && (!Array.isArray(v.directories) || v.directories.length > 20 || v.directories.some(d => typeof d !== 'string' || !isAbsolute(d) || d.length > 4096))) throw new Error('Use absolute directories');
     for (const key of ['theme','compact','alwaysOnTop','paused','directories'] as const) if (v[key] !== undefined) (prefs as any)[key] = v[key];
-    persist(); win?.setAlwaysOnTop(prefs.alwaysOnTop); await scan(); return snapshot();
+    persist(); win?.setAlwaysOnTop(prefs.alwaysOnTop); void scan().catch(() => ingestor.errors.set('scan','Scan failed; retained prior data.')); return snapshot();
   });
   handle('lens:rescan',async () => {await scan(); return snapshot();});
   handle('lens:clear',async () => {
@@ -74,7 +74,7 @@ app.whenReady().then(async () => {
   });
   Menu.setApplicationMenu(Menu.buildFromTemplate([{label:'Codex Session Lens',submenu:[{role:'about'},{type:'separator'},{role:'hide'},{role:'quit'}]},{role:'editMenu'},{role:'windowMenu'}]));
   createWindow();
-  void scan(); timer=setInterval(() => {void scan().catch(() => ingestor.errors.set('scan','Scan failed; retained prior data.'));},1000);
+  void scan().catch(() => ingestor.errors.set('scan','Scan failed; retained prior data.')); timer=setInterval(() => {void scan().catch(() => ingestor.errors.set('scan','Scan failed; retained prior data.'));},1000);
   app.on('activate',() => {if (!win) createWindow();});
 });
 app.on('window-all-closed',() => app.quit());

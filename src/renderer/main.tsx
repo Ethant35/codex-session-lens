@@ -98,7 +98,7 @@ function App() {
       <div className="brand-mark" aria-hidden="true"><span /></div>
       <div className="brand-copy">
         <p className="eyebrow">CODEX SESSION LENS</p>
-        <span className="connection"><i /> Local session telemetry</span>
+        <span className="connection"><i /> On this Mac</span>
       </div>
       <div className="top-actions">
         <button className="quiet-button" type="button" onClick={() => setSettingsOpen(value => !value)} aria-expanded={settingsOpen}>
@@ -117,7 +117,7 @@ function App() {
       <div className="session-heading">
         <div>
           <p className="eyebrow">MANUAL SESSION</p>
-          <h1>{selected ? 'Selected conversation' : 'Choose a conversation'}</h1>
+          <h1>{selected ? 'Session' : 'Select session'}</h1>
         </div>
         <span className="manual-badge">Manual mode</span>
       </div>
@@ -194,8 +194,8 @@ function App() {
       </div>
     </> : <section className="empty-card">
       <div className="empty-illustration" aria-hidden="true"><span /><span /><span /></div>
-      <h2>{sessions.length ? 'Select a session to inspect' : 'Waiting for local sessions'}</h2>
-      <p>{sessions.length ? 'Choose a session above to see its observed token usage and context estimate.' : 'Codex Session Lens reads session telemetry stored on this Mac. New sessions appear automatically.'}</p>
+      <h2>{sessions.length ? 'Select a session' : 'No local sessions'}</h2>
+      <p>{sessions.length ? 'Use the session selector above.' : 'Set source directories in Settings, or start a Codex session.'}</p>
       <button className="quiet-button" type="button" onClick={() => void mutate(() => window.lens.rescan())}>Rescan sessions</button>
     </section>}
 
