@@ -2,6 +2,9 @@ import { _electron as electron, type ElectronApplication, type Page } from '@pla
 import { appendFile, mkdir, mkdtemp, rename, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import type {ChildProcess} from 'node:child_process';
+
+const processes=new WeakMap<ElectronApplication,ChildProcess>();
 
 export interface LensRun {
   app: ElectronApplication;
@@ -31,6 +34,8 @@ const usage = (value: UsageFixture) => ({
   input_tokens: value.input,
   output_tokens: value.output,
   cached_input_tokens: value.cached ?? 0,
+  reasoning_output_tokens: 0,
+  total_tokens: value.input + value.output,
 });
 
 export async function launchLens(source?: string, data?: string): Promise<LensRun> {
@@ -42,13 +47,23 @@ export async function launchLens(source?: string, data?: string): Promise<LensRu
   const executablePath = process.env.LENS_EXECUTABLE || resolve('release/mac-arm64/Codex Session Lens.app/Contents/MacOS/Codex Session Lens');
   const app = await electron.launch({
     executablePath,
-    args: [],
+    args: process.env.LENS_VISIBLE_TESTS==='1'?[]:['--background'],
     env: { ...process.env, LENS_DATA_DIR: dataDir, LENS_SESSION_DIR: sessionDir },
   });
+  processes.set(app,app.process());
   let page: Page;
   try {
     page = await app.firstWindow();
     await page.getByText('CODEX SESSION LENS', { exact: true }).waitFor();
+    if(process.env.LENS_VISIBLE_TESTS!=='1'){
+      const state=await app.evaluate(({app,BrowserWindow})=>({
+        visible:BrowserWindow.getAllWindows().some(w=>w.isVisible()),
+        focused:BrowserWindow.getAllWindows().some(w=>w.isFocused()),
+        focusable:BrowserWindow.getAllWindows().some(w=>w.isFocusable()),
+        dock:process.platform==='darwin'?app.dock?.isVisible():false,
+      }));
+      if(state.visible || state.focused || state.focusable || state.dock)throw new Error('Background test mode must not show or focus the app');
+    }
   } catch (error) {
     await stopApp(app);
     await rm(root, { recursive: true, force: true });
@@ -72,7 +87,7 @@ const closedApps = new WeakSet<ElectronApplication>();
 async function stopApp(app: ElectronApplication): Promise<void> {
   if (closedApps.has(app)) return;
   closedApps.add(app);
-  const child = app.process();
+  const child = processes.get(app);
   if (!child || child.exitCode !== null) return;
   let timeout: ReturnType<typeof setTimeout>;
   const exited = new Promise<void>(resolve => child.once('exit',()=>resolve()));
@@ -125,12 +140,12 @@ export async function appendTokenCount(path: string, id: string, opts: {
   const event = opts.event ?? 'token_count';
   const payload = event === 'token_count'
     ? { type: 'token_count', thread_id: id, info }
-    : { type: 'token_usage_record', thread_id: id, response_id: `response-${opts.timestamp ?? Date.now()}`, thread_token_usage: usage(opts.total), usage: { ...usage(opts.latest), total_tokens: opts.latest.input + opts.latest.output }, ...(opts.contextWindow === undefined ? {} : { model_context_window: opts.contextWindow }) };
-  await appendFile(path, `${JSON.stringify({ timestamp: iso(opts.timestamp), type: 'event_msg', payload })}\n`, { mode: '0600' });
+    : { thread_id: id, turn_id: 'fixture-turn', session_id:'fixture-session', root_turn_id:'fixture-turn', response_id: `response-${opts.timestamp ?? Date.now()}`, thread_token_usage: usage(opts.total), turn_token_usage:usage(opts.total), usage: usage(opts.latest) };
+  await appendFile(path, `${JSON.stringify({ timestamp: iso(opts.timestamp), type: event==='token_count'?'event_msg':'token_usage_record', payload })}\n`, { mode: '0600' });
 }
 
 export async function appendEvent(path: string, event: string, id: string, timestamp?: string, extra: Record<string, unknown> = {}): Promise<void> {
-  await appendFile(path, `${JSON.stringify({ timestamp: iso(timestamp), type: event, payload: { thread_id: id, ...extra } })}\n`, { mode: 0o600 });
+  await appendFile(path, `${JSON.stringify({ timestamp: iso(timestamp), type: event==='compacted'?'compacted':'event_msg', payload: { type:event, thread_id: id, ...extra } })}\n`, { mode: 0o600 });
 }
 
 export async function appendRaw(path: string, text: string): Promise<void> {

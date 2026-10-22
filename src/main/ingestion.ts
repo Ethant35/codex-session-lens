@@ -5,6 +5,7 @@ import { basename, join } from 'node:path';
 import { StringDecoder } from 'node:string_decoder';
 import type { Session, Usage, Provenance } from '../shared';
 import { Store } from './store';
+import type {Observation} from './projection';
 
 type Cursor = { offset: number; inode: number; modified: number; tail: string; decoder: StringDecoder; line: number; id: string | null; dropping: boolean; anchor: Buffer };
 const integer = (v: unknown): v is number => Number.isSafeInteger(v) && (v as number) >= 0;
@@ -21,9 +22,10 @@ export class Ingestor {
   private cursors = new Map<string, Cursor>();
   private running: Promise<void> | null = null;
   private stopped = false;
+  private pending = new Map<string,Observation>();
   stop() { this.stopped = true; }
   constructor(private store: Store) { for (const s of store.sessions()) this.sessions.set(s.id, s); }
-  reset() { this.sessions.clear(); this.cursors.clear(); this.errors.clear(); this.files = 0; this.lastScan = null; }
+  reset() { this.sessions.clear(); this.pending.clear(); this.cursors.clear(); this.errors.clear(); this.files = 0; this.lastScan = null; }
   private error(key: string, message: string) { if (this.errors.size < 500) this.errors.set(key, message); }
   scan(roots: string[]): Promise<void> {
     if (this.stopped) return Promise.resolve();
@@ -53,6 +55,11 @@ export class Ingestor {
       try { await this.read(path); } catch { this.error(`read:${path}`, 'A telemetry file could not be read; retained prior data.'); }
     }
     for (const path of this.cursors.keys()) if (!files.has(path)) this.cursors.delete(path);
+    if(!this.stopped && this.pending.size){
+      try{for(const s of this.store.save([...this.pending.values()]))this.sessions.set(s.id,s);}
+      catch(e){this.cursors.clear();throw e;}
+      finally{this.pending.clear();}
+    }
     this.lastScan = new Date().toISOString();
   }
   private async read(path: string) {
@@ -109,50 +116,30 @@ export class Ingestor {
     const kind = row.type === 'event_msg' ? p.type : row.type;
     if (!['session_meta','turn_context','token_count','token_usage_record','context_compacted','compacted','task_started','task_complete','turn_aborted'].includes(kind)) return;
     const key = createHash('sha256').update(cursor.id).update(line).digest('hex');
-    if (this.store.has(key)) return;
-    const old = this.sessions.get(cursor.id);
-    const s: Session = old ? structuredClone(old) : {id: cursor.id,model:null,lastActivity:time,status:'Unavailable',total:null,latest:null,context:null,compactions:[],parentId:null,provenance:null,warnings:[]};
-    s.sources ??= {};
-    const fresh = time >= s.lastActivity;
-    const prov: Provenance = {file: basename(path),line:cursor.line,event:kind,timestamp:time};
-    const warn = (m: string) => { if (!s.warnings.includes(m)) s.warnings.push(m); };
-    if (kind === 'session_meta') {
-      const parent = p.source?.subagent?.thread_spawn?.parent_thread_id;
-      if (identity(parent) && parent !== s.id) { s.parentId = parent; s.sources.parent = prov; }
+    if (this.store.has(key) || this.pending.has(key)) return;
+    const prov:Provenance={file:basename(path),line:cursor.line,event:kind,timestamp:time};
+    const o:Observation={key,session:cursor.id,provenance:prov};
+    if(kind==='session_meta'){
+      const parent=p.source?.subagent?.thread_spawn?.parent_thread_id;
+      if(identity(parent) && parent!==cursor.id)o.parent=parent;
     }
-    if (fresh && kind === 'turn_context') {
-      const model = p.model;
-      if (typeof model === 'string' && /^[a-zA-Z0-9._:/-]{1,120}$/.test(model)) {
-        if (s.model !== model) s.context = null;
-        s.model = model; s.sources.model = prov;
+    if(kind==='turn_context' && typeof p.model==='string' && /^[a-zA-Z0-9._:/-]{1,120}$/.test(p.model)){
+      o.model=p.model;o.boundary=true;
+    }
+    if(kind==='context_compacted' || kind==='compacted')o.compaction=true;
+    if(kind==='task_started'){o.status='Running';o.boundary=true;}
+    if(kind==='task_complete')o.status='Completed';
+    if(kind==='turn_aborted')o.status='Interrupted';
+    if(kind==='token_count' || kind==='token_usage_record'){
+      const info=kind==='token_count'?p.info:{total_token_usage:p.thread_token_usage,last_token_usage:p.usage};
+      if(info){
+        o.total=usage(info.total_token_usage);o.latest=usage(info.last_token_usage);
+        if(!o.total && info.total_token_usage)o.warning='Invalid cumulative usage was ignored.';
+        const used=info.last_token_usage?.total_tokens,limit=info.model_context_window;
+        o.context=o.latest && integer(used) && used===o.latest.input+o.latest.output && integer(limit) && limit>0 && used<=limit
+          ?{used,limit,percent:100*used/limit,kind:'estimate'}:null;
       }
     }
-    if (kind === 'context_compacted' || kind === 'compacted') {
-      // A compacted rollout item and its event notification describe one operation.
-      if (!s.compactions.some(c => c.timestamp === time)) s.compactions.push({timestamp:time,provenance:prov});
-      if (fresh) s.context = null;
-    }
-    if (fresh && kind === 'task_started') { s.status = 'Running'; s.sources.status = prov; s.context = null; }
-    if (fresh && kind === 'task_complete') { s.status = 'Completed'; s.sources.status = prov; }
-    if (fresh && kind === 'turn_aborted') { s.status = 'Interrupted'; s.sources.status = prov; }
-    if (fresh && (kind === 'token_count' || kind === 'token_usage_record')) {
-      const info = kind === 'token_count' ? p.info : {total_token_usage:p.thread_token_usage,last_token_usage:p.usage};
-      if (info) {
-        const total = usage(info.total_token_usage); const latest = usage(info.last_token_usage);
-        if (total) {
-          if (s.total && (total.input < s.total.input || total.output < s.total.output || total.cached < s.total.cached)) warn('Cumulative counter decreased. Prior totals retained; total coverage is uncertain.');
-          else { s.total = total; s.provenance = prov; }
-        } else if (info.total_token_usage) warn('Invalid cumulative usage was ignored.');
-        s.latest = latest;
-        if (latest) s.sources.latest = prov; else delete s.sources.latest;
-        // Only an explicitly reported limit and a complete latest-request total support this estimate.
-        const used = info.last_token_usage?.total_tokens;
-        const limit = info.model_context_window;
-        s.context = latest && integer(used) && used === latest.input + latest.output && integer(limit) && limit > 0 && used <= limit
-          ? {used,limit,percent:100 * used / limit,kind:'estimate'} : null;
-      }
-    }
-    if (fresh) s.lastActivity = time;
-    this.store.save(key, s); this.sessions.set(s.id, s);
+    this.pending.set(key,o);
   }
 }

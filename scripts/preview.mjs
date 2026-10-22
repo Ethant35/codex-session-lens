@@ -10,7 +10,7 @@ const rows=[
 {timestamp:'2026-10-22T18:00:02Z',type:'event_msg',payload:{type:'token_count',info:{total_token_usage:{input_tokens:128400,output_tokens:8200,cached_input_tokens:96000},last_token_usage:{input_tokens:60000,output_tokens:2000,cached_input_tokens:45000,total_tokens:62000},model_context_window:258400}}}
 ];
 await writeFile(join(root,'sessions','demo.jsonl'),rows.map(r=>JSON.stringify(r)).join('\n')+'\n');
-const app=await electron.launch({executablePath:resolve('release/mac-arm64/Codex Session Lens.app/Contents/MacOS/Codex Session Lens'),env:{...process.env,LENS_DATA_DIR:join(root,'data'),LENS_SESSION_DIR:join(root,'sessions')}});
+const app=await electron.launch({executablePath:resolve('release/mac-arm64/Codex Session Lens.app/Contents/MacOS/Codex Session Lens'),args:['--background'],env:{...process.env,LENS_DATA_DIR:join(root,'data'),LENS_SESSION_DIR:join(root,'sessions')}});
 try {
 const page=await app.firstWindow();await page.getByTestId('session-demo-session-2026').click();
 await mkdir('.local',{recursive:true});await page.screenshot({animations:'disabled',path:'.local/hud-default.png'});

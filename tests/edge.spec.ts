@@ -32,3 +32,18 @@ test('SL-04 additional: mismatched identities and invalid counts cannot contamin
   await expect(run.page.getByTestId('context-value')).toHaveText('Unavailable');
  }finally {await run.close();}
 });
+
+test('SL-15: background main-process failures exit nonzero without waiting for a dialog',async()=>{
+ const run=await launchLens();
+ try{
+  const child=run.app.process();let stderr='';
+  child.stderr?.on('data',chunk=>{stderr+=chunk.toString();});
+  const exited=new Promise<number|null>(resolve=>child.once('exit',code=>resolve(code)));
+  await run.app.evaluate(()=>{setTimeout(()=>{throw new Error('LENS_SYNTHETIC_BACKGROUND_FAILURE');},20);});
+  let timer:ReturnType<typeof setTimeout>;
+  try{
+   const code=await Promise.race([exited,new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new Error('Background failure did not exit')),5000);})]);
+   expect(code).toBe(1);expect(stderr).toContain('LENS_SYNTHETIC_BACKGROUND_FAILURE');
+  }finally{clearTimeout(timer!);}
+ }finally{await run.close();}
+});

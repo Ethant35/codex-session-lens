@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { readdir, readFile, copyFile, mkdir, writeFile } from 'node:fs/promises';
+import { readdir, readFile, copyFile, mkdir, writeFile, rm } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { launchLens } from './helpers';
+import { launchLens, closeLens } from './helpers';
 const exec = promisify(execFile);
 const execClosed = (file: string, args: string[], options: any): Promise<{stdout:string;stderr:string}> => new Promise((resolve,reject) => {
   const child = execFile(file,args,{...options,encoding:'utf8'},(error,stdout,stderr)=> error ? reject(error) : resolve({stdout:String(stdout),stderr:String(stderr)}));
@@ -13,7 +13,8 @@ const execClosed = (file: string, args: string[], options: any): Promise<{stdout
 
 test('SL-11 actual Codex CLI session has the same rendered usage as its real rollout', async () => {
   test.setTimeout(120_000);
-  const run = await launchLens();
+  let run = await launchLens();
+  let reorderedRoot:string|undefined;
   try {
     const {stdout} = await execClosed('codex',['exec','--ignore-user-config','--ignore-rules','--skip-git-repo-check','-s','read-only','-m','gpt-6-luna','-c','model_provider="openai"','-c','model_reasoning_effort="low"','--json','Reply with exactly SESSION_LENS_REAL_ACCEPTANCE. Do not call tools or edit files.'],{timeout:90_000,maxBuffer:2*1024*1024,env:process.env});
     const events=stdout.trim().split('\n').map(line=>JSON.parse(line));
@@ -36,9 +37,29 @@ test('SL-11 actual Codex CLI session has the same rendered usage as its real rol
     await expect(run.page.getByTestId('total-cached')).toHaveText(f(sample.total_token_usage.cached_input_tokens));
     await expect(run.page.getByTestId('model')).toHaveText('gpt-6-luna');
     expect(sample.total_token_usage.input_tokens).toBe(complete.usage.input_tokens);
+    expect(sample.total_token_usage.output_tokens).toBe(complete.usage.output_tokens);
+    expect(sample.total_token_usage.cached_input_tokens).toBe(complete.usage.cached_input_tokens);
+    // Fresh cache: discover the terminal status first, restart, then discover
+    // the original rollout and an overlapping copy. No model/API is mocked.
+    await run.close();run=await launchLens();reorderedRoot=run.root;
+    const meta=rows.find(r=>r.type==='session_meta');
+    const terminal=rows.filter(r=>r.type==='event_msg' && r.payload?.type==='task_complete').at(-1);
+    expect(terminal).toBeTruthy();
+    await writeFile(join(run.source,'a-terminal.jsonl'),[meta,terminal].map(r=>JSON.stringify(r)).join('\n')+'\n');
+    await run.page.getByTestId(`session-${id}`).click();
+    await expect(run.page.locator('.status-block strong')).toHaveText('Completed');
+    const replaySource=run.source,replayData=run.data;
+    await closeLens(run,false);run=await launchLens(replaySource,replayData);
+    await copyFile(source,join(replaySource,'z-real.jsonl'));
+    await copyFile(source,join(replaySource,'overlap.jsonl'));
+    await expect(run.page.getByTestId('total-input')).toHaveText(f(sample.total_token_usage.input_tokens));
+    await expect(run.page.getByTestId('total-output')).toHaveText(f(sample.total_token_usage.output_tokens));
+    await expect(run.page.getByTestId('total-cached')).toHaveText(f(sample.total_token_usage.cached_input_tokens));
+    await expect(run.page.getByTestId('model')).toHaveText('gpt-6-luna');
+    await expect(run.page.locator('.status-block strong')).toHaveText('Completed');
     await mkdir('.local',{recursive:true});
-    await writeFile('.local/real-evidence.json',JSON.stringify({author:'Ethan',timestamp:new Date().toISOString(),cli:(await exec('codex',['--version'])).stdout.trim(),model:'gpt-6-luna',totals:sample.total_token_usage,source:'actual local Codex JSONL rollout; private path and contents omitted',passed:true},null,2));
-  } finally {await run.close();}
+    await writeFile('.local/real-evidence.json',JSON.stringify({author:'Ethan',timestamp:new Date().toISOString(),cli:(await exec('codex',['--version'])).stdout.trim(),model:'gpt-6-luna',totals:sample.total_token_usage,source:'actual local Codex JSONL rollout; private path and contents omitted',terminalFirstRestartOverlapPassed:true,passed:true},null,2));
+  } finally {await run.close();if(reorderedRoot)await rm(reorderedRoot,{recursive:true,force:true});}
 });
 
 test('SL-12 installed Codex desktop is present; manual selection is explicitly unsupported for automatic switching', async () => {

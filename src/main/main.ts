@@ -6,6 +6,15 @@ import { Store } from './store';
 import { Ingestor } from './ingestion';
 import type { Preferences, Snapshot } from '../shared';
 
+const background = process.argv.includes('--background') || process.env.LENS_BACKGROUND === '1';
+if (background && process.platform === 'darwin') app.setActivationPolicy('accessory');
+if (background) {
+  const fail = (error:unknown) => { console.error(error); app.exit(1); };
+  process.on('uncaughtException',fail);
+  process.on('unhandledRejection',fail);
+  for(const signal of ['SIGINT','SIGTERM'] as const)process.on(signal,()=>app.isReady()?app.quit():app.exit(0));
+}
+
 // No remote content, updater, analytics, or API client. Chromium background networking is disabled.
 app.commandLine.appendSwitch('disable-background-networking');
 app.commandLine.appendSwitch('disable-component-update');
@@ -26,7 +35,7 @@ const scan = async () => { if (!prefs.paused) await ingestor.scan(prefs.director
 function createWindow() {
   const saved = store.get<Electron.Rectangle>('bounds');
   const valid = saved && screen.getAllDisplays().some(d => saved.x + saved.width > d.workArea.x && saved.x < d.workArea.x + d.workArea.width && saved.y >= d.workArea.y && saved.y < d.workArea.y + d.workArea.height - 40);
-  win = new BrowserWindow({width:460,height:650,minWidth:360,minHeight:320,...(valid ? saved : {}),title:'Codex Session Lens',alwaysOnTop:prefs.alwaysOnTop,backgroundColor:'#101719',webPreferences:{preload:join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true,devTools:!app.isPackaged}});
+  win = new BrowserWindow({width:460,height:650,minWidth:360,minHeight:320,...(valid ? saved : {}),show:!background,focusable:!background,skipTaskbar:background,title:'Codex Session Lens',alwaysOnTop:prefs.alwaysOnTop,backgroundColor:'#101719',webPreferences:{preload:join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true,backgroundThrottling:!background,devTools:!app.isPackaged}});
   win.webContents.setWindowOpenHandler(() => ({action:'deny'}));
   win.webContents.on('will-navigate', event => event.preventDefault());
   win.webContents.on('will-attach-webview', event => event.preventDefault());
