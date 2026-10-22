@@ -13,8 +13,18 @@ await writeFile(join(root,'sessions','demo.jsonl'),rows.map(r=>JSON.stringify(r)
 const app=await electron.launch({executablePath:resolve('release/mac-arm64/Codex Session Lens.app/Contents/MacOS/Codex Session Lens'),env:{...process.env,LENS_DATA_DIR:join(root,'data'),LENS_SESSION_DIR:join(root,'sessions')}});
 try {
 const page=await app.firstWindow();await page.getByTestId('session-demo-session-2026').click();
-await mkdir('.local',{recursive:true});await page.screenshot({path:'.local/hud-default.png'});
-await page.getByRole('button',{name:'Compact display'}).click();await page.screenshot({path:'.local/hud-compact.png'});
+await mkdir('.local',{recursive:true});await page.screenshot({animations:'disabled',path:'.local/hud-default.png'});
+await page.getByRole('button',{name:'Compact display'}).click();await page.screenshot({animations:'disabled',path:'.local/hud-compact.png'});
 console.log(await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,scrollHeight:document.documentElement.scrollHeight,clientHeight:document.documentElement.clientHeight})));
-await page.getByRole('button',{name:'Settings',exact:true}).click();await page.getByLabel('Theme').selectOption('dark');await page.getByRole('button',{name:'Close settings'}).click();await page.screenshot({path:'.local/hud-dark.png'});
-}finally {const closed=app.waitForEvent('close');await app.evaluate(({app})=>{app.once('will-quit',()=>app.exit(0));setTimeout(()=>app.quit(),20)});await closed;await rm(root,{recursive:true,force:true});}
+await page.getByRole('button',{name:'Settings',exact:true}).click();await page.getByLabel('Theme').selectOption('dark');await page.getByRole('button',{name:'Close settings'}).click();await page.screenshot({animations:'disabled',path:'.local/hud-dark.png'});
+}finally {
+const child=app.process();
+const exited=new Promise(resolve=>child.once('exit',resolve));
+const quit=new Promise(resolve=>app.on('console',m=>{if(m.text()==='LENS_PREVIEW_QUIT')resolve()}));
+await app.evaluate(({app})=>{app.once('will-quit',()=>console.log('LENS_PREVIEW_QUIT'));setTimeout(()=>app.quit(),20)});
+await Promise.race([quit,exited,new Promise(resolve=>setTimeout(resolve,3000))]);
+if(child.exitCode===null)child.kill('SIGTERM');
+await Promise.race([exited,new Promise(resolve=>setTimeout(resolve,1000))]);
+if(child.exitCode===null && child.signalCode===null)child.kill('SIGKILL');
+await rm(root,{recursive:true,force:true});
+}

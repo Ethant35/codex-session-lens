@@ -1,30 +1,31 @@
 # Codex Session Lens handoff
 Author: Ethan
-Updated: 2026-10-22 (America/Los_Angeles)
+Updated: 2026-10-22 12:21 PDT
 
-## State
-Goal ACTIVE. NOT DONE. Repository https://github.com/Ethant35/codex-session-lens
+Repository: https://github.com/Ethant35/codex-session-lens
 Local path: /Users/ethantarnarider/Documents/ChatGPT/Open source/codex-session-lens
-Branch: codex/session-lens-v1. Base: 6811427.
-Actions disabled using repository actions/permissions API, verified enabled=false; no existing workflows. Do not enable Actions or create workflows.
+Branch: codex/session-lens-v1
+Application source commit: f3a99d6fed4f971a102bb221db5efa59306a45b6
+PR: https://github.com/Ethant35/codex-session-lens/pull/1 (attached)
+Goal ACTIVE until merge and release publication are verified. All implementation and acceptance gates PASS; release operations remain.
 
-## Plan and gates
-Implement Electron/React/TypeScript companion HUD, local persistent telemetry with explicit provenance, conservative accounting, manual session selector. Inspect installed Codex 0.163.0 and desktop alpha telemetry before finalizing parser. No private conversations in repository.
-Mandatory gates: packaged app SL-01..10, 13, 14; real Codex SL-11; installed desktop/manual fallback SL-12; clean checkout installation. Local checks replace CI. Then reviewed PR, merge, v1.0.0 tag/release with unsigned arm64 artifact.
-No checks passed yet. No subprocesses or child agents running at this initial checkpoint.
-Account startup: 1% used (99% remains); check periodically and stop all workers/processes at actual exhaustion. Do not use credits/reset/provider to bypass exhaustion.
+## Completed
+Hardened Electron/React/TypeScript HUD, local SQLite, identity isolation, cumulative/last-request accounting, explicit unknown/context estimates, metadata provenance, compaction and parent-linked children, settings/history, responsive light/dark/compact modes. Read-only JSONL source ingestion handles appends, corruption, rotation and in-place replacement. Manual native-conversation selector fallback documented; automatic switching unsupported.
 
-## Resume
+## Verification
+Primary deterministic E2E14/14; real CLI/desktop2/2; clean-checkout E2E14/14; installed-package SL13 1/1. Native installed Cmd+Q exit0 with no debugger/dialog. Actual real usage input15827/output10/cached7168 matches UI. Privacy zero observed uploads. See ACCEPTANCE.md and docs/*.json for exact evidence and test-debugger cleanup caveat. Clean build/primary/installed app.asar hashes identical.
+Unsigned arm64 DMG/ZIP in release/. Installed from DMG to /Users/ethantarnarider/Applications/Codex Session Lens.app. Test windows closed; no app/test workers running at this checkpoint. Both Luna children completed and interrupted. Mounted DMG ejected. .local/clean-checkout and synthetic local evidence retained, ignored by Git. No private rollouts or raw network logs are published.
+
+## Remaining release work
+Commit final acceptance/evidence/preview docs. Verify Actions disabled again, push, mark PR ready, merge after review, tag v1.0.0, create release with primary DMG/ZIP and SHA256SUMS.txt. Verify remote main/tag/release assets and no Actions runs. Then mark goal complete and stop the usage-check task. No code gate remains blocked.
+
+## Usage and constraints
+Supported get_usage_limits checker is running every45seconds in functions cell10 during active work; last reading20%used. Stop all work and processes at100%used in an applicable window; never bypass with credits/provider/account. No credential polling and no config.toml edits. GitHub Actions remain repository-disabled; no workflow files exist and run count0. Do not enable or trigger them.
+
+## Next-session commands
 cd '/Users/ethantarnarider/Documents/ChatGPT/Open source/codex-session-lens'
 git status --short
 gh api repos/Ethant35/codex-session-lens/actions/permissions
-Read ACCEPTANCE.md and inspect implementation before running checks.
-
-## Implementation checkpoint 2026-10-22 11:58 PDT
-Core TypeScript ingester, SQLite store, hardened Electron process/preload, React HUD implemented and built. Package build is running; initial unsigned arm64 app exists. UI worker completed and interrupted. One Luna worker owns deterministic tests only. Main owns privacy/real tests and docs. Supported usage checker runs every 45 seconds via get_usage_limits in functions cell 10; latest 5% used. No credential polling. CLI real smoke succeeded: input15828/output10/cached7168. Full real UI gate not yet run. Accessibility probe: installed desktop running, version26.1016.61520, no permission; manual fallback documented. npm production audit: zero vulnerabilities; development packaging tree has moderate sprintf-js transitive advisory, under investigation. All release gates still pending. No push or release yet.
-
-## Repair checkpoint 2026-10-22 12:05 PDT
-Implementation commit d49e75c; tests uncommitted while being repaired. First full deterministic attempt: 9 passed, 3 failed (fixture context expectation, async checkbox assertion, shutdown). Native error dialog exposed a real shutdown-order bug (save bounds after SQLite close); fixed. A test cleanup bug also deleted temp database while app was still alive; fixed cleanup and bounded process shutdown. Dialog dismissed via Computer Use, old test PIDs terminated. Real suite: SL12 manual fallback passed; SL11 runner hung on open stdin (CLI itself smoke passed); stdin closure fixed, rerun pending. Privacy assertions themselves recorded zero uploads and passed hardening probes but teardown failed, so SL14 gate NOT passed yet. Full reruns, clean checkout, DMG install, release all pending. Active work: targeted SL09/14 repair run. Latest usage9%; supported checker still cell10/45seconds. Both Luna children complete and interrupted. No GitHub pushes yet.
-
-## Verification checkpoint 2026-10-22 12:16 PDT
-Draft PR https://github.com/Ethant35/codex-session-lens/pull/1 attached to chat; branch pushed at7b79383, additional changes uncommitted. Actions remain disabled, runs0. Core fixes now include safe synchronous quit lifecycle, in-place growing-file rewrite detection via boundary anchor, and separate metric provenance. UI copy shortened per Ethan; switcher collapses after manual selection. Last completed suite11/14 passed, three failures in test debugger cleanup (all data assertions passed); inspector waits after application's quit event. Harness now observes actual will-quit then stops the attached debugger process. Native, non-debugger Quit still MUST be verified separately. Final14-test suite and real2-test suite running sequentially (session17721). No agents running. Usage checker cell10 stays active every45seconds (last16%used). No external blocker, keep fixing until gates pass. Next: inspect results, DMG install under ~/Applications (target confirmed absent), native close test, clean-checkout npm ci/build/package/E2E, sanitize evidence, finalize PR/merge/release. Do not claim done yet.
+gh pr view 1 --json state,mergeCommit,url
+gh release view v1.0.0
+Read ACCEPTANCE.md before repeating expensive checks. If release already exists, verify it rather than recreate it.

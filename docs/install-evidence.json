@@ -1,0 +1,21 @@
+{
+  "author": "Ethan",
+  "timestamp": "2026-10-22T19:18:30Z",
+  "sourceCommit": "f3a99d6fed4f971a102bb221db5efa59306a45b6",
+  "dmgMountedReadOnly": true,
+  "installedFromDMG": true,
+  "nativeControlVerification": {
+    "session": "native-install-check",
+    "input": 2000,
+    "output": 500,
+    "cached": 800,
+    "contextEstimatePercent": 25
+  },
+  "nativeQuit": {
+    "method": "macOS Cmd+Q via Computer Use, no debugger attached",
+    "processExitCode": 0,
+    "errorDialog": false
+  },
+  "appAsarSha256": "76541cbb0b6c8d67ad2e23a552b1bba996ed44bcf2f15a24cbba407e3adaac92",
+  "cleanAndInstalledAsarMatch": true
+}

@@ -1,0 +1,191 @@
+{
+  "author": "Ethan",
+  "generatedAt": "2026-10-22T19:20:14.850Z",
+  "sourceCommit": "f3a99d6fed4f971a102bb221db5efa59306a45b6",
+  "actions": "Intentionally disabled; all checks local",
+  "runs": [
+    {
+      "report": "e2e-report.json",
+      "started": "2026-10-22T19:16:21.120Z",
+      "durationMs": 50476.661,
+      "cases": [
+        {
+          "name": "SL-01: clean launch shows empty state and usable settings",
+          "status": "passed",
+          "durationMs": 2670
+        },
+        {
+          "name": "SL-02: discovers a session and renders exact model and cumulative metrics",
+          "status": "passed",
+          "durationMs": 1579
+        },
+        {
+          "name": "SL-03: appended telemetry updates the rendered metrics within five seconds",
+          "status": "passed",
+          "durationMs": 3347
+        },
+        {
+          "name": "SL-04: switching sessions keeps each session metrics isolated",
+          "status": "passed",
+          "durationMs": 1623
+        },
+        {
+          "name": "SL-05: cumulative token_count and overlapping usage records are not added together",
+          "status": "passed",
+          "durationMs": 3349
+        },
+        {
+          "name": "SL-06: context estimate requires complete latest usage and a known limit",
+          "status": "passed",
+          "durationMs": 5151
+        },
+        {
+          "name": "SL-07: recorded compaction appears in the selected session timeline",
+          "status": "passed",
+          "durationMs": 1628
+        },
+        {
+          "name": "SL-08: malformed, partial, rotated, and truncated files retain valid history and report errors",
+          "status": "passed",
+          "durationMs": 5015
+        },
+        {
+          "name": "SL-09: preferences, selected session, recent history, and window bounds persist after restart",
+          "status": "passed",
+          "durationMs": 3267
+        },
+        {
+          "name": "SL-10: distinguishable child sessions are attributed to the correct parent",
+          "status": "passed",
+          "durationMs": 1644
+        },
+        {
+          "name": "SL-13: packaged Apple Silicon app launches and supports navigation, directories, and keyboard search",
+          "status": "passed",
+          "durationMs": 3391
+        },
+        {
+          "name": "SL-08 additional: an in-place rewrite that grows the file replays safely",
+          "status": "passed",
+          "durationMs": 3547
+        },
+        {
+          "name": "SL-04 additional: mismatched identities and invalid counts cannot contaminate a session",
+          "status": "passed",
+          "durationMs": 3566
+        },
+        {
+          "name": "SL-14 local ingestion makes no HTTP uploads; renderer cannot connect or access Node",
+          "status": "passed",
+          "durationMs": 3290
+        }
+      ]
+    },
+    {
+      "report": "real-report.json",
+      "started": "2026-10-22T19:17:11.994Z",
+      "durationMs": 13089.122,
+      "cases": [
+        {
+          "name": "SL-11 actual Codex CLI session has the same rendered usage as its real rollout",
+          "status": "passed",
+          "durationMs": 6830
+        },
+        {
+          "name": "SL-12 installed Codex desktop is present; manual selection is explicitly unsupported for automatic switching",
+          "status": "passed",
+          "durationMs": 3662
+        }
+      ]
+    },
+    {
+      "report": "clean-report.json",
+      "started": "2026-10-22T19:18:43.530Z",
+      "durationMs": 33908.253,
+      "cases": [
+        {
+          "name": "SL-01: clean launch shows empty state and usable settings",
+          "status": "passed",
+          "durationMs": 2424
+        },
+        {
+          "name": "SL-02: discovers a session and renders exact model and cumulative metrics",
+          "status": "passed",
+          "durationMs": 1576
+        },
+        {
+          "name": "SL-03: appended telemetry updates the rendered metrics within five seconds",
+          "status": "passed",
+          "durationMs": 3344
+        },
+        {
+          "name": "SL-04: switching sessions keeps each session metrics isolated",
+          "status": "passed",
+          "durationMs": 946
+        },
+        {
+          "name": "SL-05: cumulative token_count and overlapping usage records are not added together",
+          "status": "passed",
+          "durationMs": 2005
+        },
+        {
+          "name": "SL-06: context estimate requires complete latest usage and a known limit",
+          "status": "passed",
+          "durationMs": 3457
+        },
+        {
+          "name": "SL-07: recorded compaction appears in the selected session timeline",
+          "status": "passed",
+          "durationMs": 877
+        },
+        {
+          "name": "SL-08: malformed, partial, rotated, and truncated files retain valid history and report errors",
+          "status": "passed",
+          "durationMs": 4030
+        },
+        {
+          "name": "SL-09: preferences, selected session, recent history, and window bounds persist after restart",
+          "status": "passed",
+          "durationMs": 3353
+        },
+        {
+          "name": "SL-10: distinguishable child sessions are attributed to the correct parent",
+          "status": "passed",
+          "durationMs": 1639
+        },
+        {
+          "name": "SL-13: packaged Apple Silicon app launches and supports navigation, directories, and keyboard search",
+          "status": "passed",
+          "durationMs": 2156
+        },
+        {
+          "name": "SL-08 additional: an in-place rewrite that grows the file replays safely",
+          "status": "passed",
+          "durationMs": 2643
+        },
+        {
+          "name": "SL-04 additional: mismatched identities and invalid counts cannot contaminate a session",
+          "status": "passed",
+          "durationMs": 2630
+        },
+        {
+          "name": "SL-14 local ingestion makes no HTTP uploads; renderer cannot connect or access Node",
+          "status": "passed",
+          "durationMs": 2398
+        }
+      ]
+    },
+    {
+      "report": "installed-report.json",
+      "started": "2026-10-22T19:19:18.038Z",
+      "durationMs": 2380.928,
+      "cases": [
+        {
+          "name": "SL-13: packaged Apple Silicon app launches and supports navigation, directories, and keyboard search",
+          "status": "passed",
+          "durationMs": 2113
+        }
+      ]
+    }
+  ]
+}

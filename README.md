@@ -41,3 +41,9 @@ npm run test:e2e:real
 Node.js 22.12+ and npm are required. Packaging targets arm64 and writes DMG/ZIP files under `release/`. Real E2E checks require the installed, signed-in Codex CLI and running Codex desktop. Deterministic E2E checks need neither and use temporary synthetic JSONL inputs in the actual packaged app. See [ACCEPTANCE.md](ACCEPTANCE.md) for results and [CONTRIBUTING.md](CONTRIBUTING.md) for the local workflow.
 
 GitHub Actions and CI are intentionally omitted at Ethan's request. Equivalent applicable acceptance runs locally. The original MIT license is preserved.
+
+## Screenshots
+
+Synthetic telemetry, compact light and dark modes:
+
+<img src="docs/hud-compact.png" alt="Compact light HUD with separate cumulative tokens and estimated context" width="360"> <img src="docs/hud-dark.png" alt="Compact dark HUD" width="360">
