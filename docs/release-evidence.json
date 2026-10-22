@@ -1,0 +1,31 @@
+{
+  "author": "Ethan",
+  "verifiedAt": "2026-10-22T19:26:38.405039+00:00",
+  "releaseUrl": "https://github.com/Ethant35/codex-session-lens/releases/tag/v1.0.0",
+  "tag": "v1.0.0",
+  "releaseCommit": "1ceb6e7bf3b16e4520ae8eda39fff65505f926f0",
+  "publishedAt": "2026-10-22T19:24:57Z",
+  "draft": false,
+  "actionsEnabled": false,
+  "actionsRuns": 0,
+  "assets": [
+    {
+      "name": "Codex.Session.Lens-1.0.0-arm64-mac.zip",
+      "size": 121671516,
+      "digest": "sha256:1a126940e3cfa315a1d020721009cd90e91a2977f2d36a8cc2cc5385e8f88c17",
+      "state": "uploaded"
+    },
+    {
+      "name": "Codex.Session.Lens-1.0.0-arm64.dmg",
+      "size": 122222054,
+      "digest": "sha256:1acd958bec9a0fa250d53f03573b30a9956d3ba4dec3e280ab05c8b2e30557d5",
+      "state": "uploaded"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "size": 206,
+      "digest": "sha256:70236f5eb24c8269b2d0c31db049d2555500cf0549646dbcdacc09567d5e0e28",
+      "state": "uploaded"
+    }
+  ]
+}

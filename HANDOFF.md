@@ -1,31 +1,34 @@
-# Codex Session Lens handoff
+# Codex Session Lens final handoff
 Author: Ethan
-Updated: 2026-10-22 12:21 PDT
+Updated: 2026-10-22, America/Los_Angeles
 
+Project DONE. Goal objective achieved: build, verify and release Codex Session Lens.
 Repository: https://github.com/Ethant35/codex-session-lens
-Local path: /Users/ethantarnarider/Documents/ChatGPT/Open source/codex-session-lens
-Branch: codex/session-lens-v1
+Release: https://github.com/Ethant35/codex-session-lens/releases/tag/v1.0.0
+Release commit: 1ceb6e7bf3b16e4520ae8eda39fff65505f926f0
 Application source commit: f3a99d6fed4f971a102bb221db5efa59306a45b6
-PR: https://github.com/Ethant35/codex-session-lens/pull/1 (attached)
-Goal ACTIVE until merge and release publication are verified. All implementation and acceptance gates PASS; release operations remain.
+Implementation PR: https://github.com/Ethant35/codex-session-lens/pull/1 (merged)
+Local repository: /Users/ethantarnarider/Documents/ChatGPT/Open source/codex-session-lens
+Installed app: /Users/ethantarnarider/Applications/Codex Session Lens.app
 
-## Completed
-Hardened Electron/React/TypeScript HUD, local SQLite, identity isolation, cumulative/last-request accounting, explicit unknown/context estimates, metadata provenance, compaction and parent-linked children, settings/history, responsive light/dark/compact modes. Read-only JSONL source ingestion handles appends, corruption, rotation and in-place replacement. Manual native-conversation selector fallback documented; automatic switching unsupported.
+## Completed and verified
+Hardened Electron/React/TypeScript HUD; SQLite; session identity isolation; separate cumulative/latest-request usage; explicit unknown/context estimates; per-metric provenance; recorded compaction and distinguishable child activity; manual selection, preferences/history and light/dark/compact modes. Read-only JSONL ingestion handles appends, malformed/truncated data, rotation and growing in-place rewrites. No backend, account, API key, analytics or uploads.
 
-## Verification
-Primary deterministic E2E14/14; real CLI/desktop2/2; clean-checkout E2E14/14; installed-package SL13 1/1. Native installed Cmd+Q exit0 with no debugger/dialog. Actual real usage input15827/output10/cached7168 matches UI. Privacy zero observed uploads. See ACCEPTANCE.md and docs/*.json for exact evidence and test-debugger cleanup caveat. Clean build/primary/installed app.asar hashes identical.
-Unsigned arm64 DMG/ZIP in release/. Installed from DMG to /Users/ethantarnarider/Applications/Codex Session Lens.app. Test windows closed; no app/test workers running at this checkpoint. Both Luna children completed and interrupted. Mounted DMG ejected. .local/clean-checkout and synthetic local evidence retained, ignored by Git. No private rollouts or raw network logs are published.
+All required gates passed: primary deterministic14/14, actual CLI/desktop2/2, clean-checkout deterministic14/14, DMG-installed package SL13 1/1. Installed native Cmd+Q exited0 without debugger/dialog. UI matched actual CLI input15827/output10/cached7168. Privacy inspection observed no uploads. Primary/clean/installed app.asar SHA256 matched. ACCEPTANCE.md and docs/*.json contain commands, timestamps, durations, hashes and the test-debugger cleanup caveat. Published DMG/ZIP digests match tested local artifacts; checksum filenames match GitHub-normalized asset names.
 
-## Remaining release work
-Commit final acceptance/evidence/preview docs. Verify Actions disabled again, push, mark PR ready, merge after review, tag v1.0.0, create release with primary DMG/ZIP and SHA256SUMS.txt. Verify remote main/tag/release assets and no Actions runs. Then mark goal complete and stop the usage-check task. No code gate remains blocked.
+## Limits
+Manual selector is the supported desktop integration; automatic foreground switching unsupported. Context is a last-request estimate, current occupancy unavailable. Uncompressed local JSONL only; source schemas can change. Status is last observed. Tested Apple Silicon/macOS27.2 only. No Developer ID signing/notarization; upstream ad-hoc linker signature is not distribution signing. Eight moderate development packaging advisories remain documented; production audit has zero vulnerabilities. No unpassed required gate or external blocker remains.
 
-## Usage and constraints
-Supported get_usage_limits checker is running every45seconds in functions cell10 during active work; last reading20%used. Stop all work and processes at100%used in an applicable window; never bypass with credits/provider/account. No credential polling and no config.toml edits. GitHub Actions remain repository-disabled; no workflow files exist and run count0. Do not enable or trigger them.
+## Cleanup and usage
+All test app windows, CLI checks and child agents are stopped. Both Luna children were interrupted after completion. Mounted DMG ejected. No error dialog is left for Ethan. Generated build artifacts and .local/clean-checkout remain ignored and available for inspection. Source data was not changed; only the new app's local data was written.
+The supported account usage checker ran every45seconds during project work; last observed22%used, no exhausted window. It is stopped at end-of-chat after final verification. No credits/resets/providers were used to bypass limits. No config.toml changes.
+GitHub Actions remain disabled for this repository, no workflows created, zero runs verified after publication. Preserve that setting. Local tests replaced CI per Ethan.
 
 ## Next-session commands
 cd '/Users/ethantarnarider/Documents/ChatGPT/Open source/codex-session-lens'
 git status --short
-gh api repos/Ethant35/codex-session-lens/actions/permissions
-gh pr view 1 --json state,mergeCommit,url
 gh release view v1.0.0
-Read ACCEPTANCE.md before repeating expensive checks. If release already exists, verify it rather than recreate it.
+gh api repos/Ethant35/codex-session-lens/actions/permissions
+npm run dev
+
+For future code changes, use a new codex/ branch and run npm run package:mac then npm run test:e2e. Run npm run test:e2e:real only when actual integration needs revalidation; it consumes one normal Codex turn. Do not recreate the published release or repeat acceptance without a reason.
