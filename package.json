@@ -1,0 +1,70 @@
+{
+  "name": "codex-session-lens",
+  "version": "1.0.0",
+  "description": "Local session telemetry companion HUD for Codex",
+  "author": "Ethan",
+  "license": "MIT",
+  "main": "dist/main/main.cjs",
+  "scripts": {
+    "dev": "npm run build && electron .",
+    "build": "tsc --noEmit && vite build && node scripts/build-main.mjs",
+    "package:mac": "npm run build && electron-builder --mac dmg zip --arm64 --publish never",
+    "test:e2e": "playwright test tests/acceptance.spec.ts tests/privacy.spec.ts",
+    "test:e2e:real": "playwright test tests/real.spec.ts"
+  },
+  "build": {
+    "appId": "com.ethan.codex-session-lens",
+    "productName": "Codex Session Lens",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json",
+      "LICENSE"
+    ],
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "identity": null,
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "extendInfo": {
+        "NSHumanReadableCopyright": "Copyright 2026 Ethan. MIT License."
+      },
+      "icon": "build/icon.icns"
+    },
+    "dmg": {
+      "title": "Codex Session Lens",
+      "contents": [
+        {
+          "x": 140,
+          "y": 180
+        },
+        {
+          "x": 420,
+          "y": 180,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "electron": "^45.0.0",
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5"
+  },
+  "type": "module"
+}
