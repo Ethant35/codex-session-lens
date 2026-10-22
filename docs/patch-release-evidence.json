@@ -1,0 +1,28 @@
+{
+  "author": "Ethan",
+  "version": "1.0.1",
+  "applicationSourceCommit": "01a746c90180105c5966297e9b460745704ccbda",
+  "appAsarSha256": "39cf6a7c99368bfaef1a09e579b5a8242d7d5d1c4bf20e30c44cfb5e65922182",
+  "primaryCleanInstalledMatch": true,
+  "baselineV1AsarSha256": "76541cbb0b6c8d67ad2e23a552b1bba996ed44bcf2f15a24cbba407e3adaac92",
+  "assets": [
+    {
+      "name": "Codex.Session.Lens-1.0.1-arm64.dmg",
+      "sha256": "d9d8dc73b83fe4785bc8b3cc37935d33cc36ce375bc20ea4bdf0454404da2b69"
+    },
+    {
+      "name": "Codex.Session.Lens-1.0.1-arm64-mac.zip",
+      "sha256": "feefcaffbeb0680835461626d4ef6595a0202a95cf50de72d98f77f7eff9072e"
+    }
+  ],
+  "distributionSigning": "No Developer ID signing or notarization",
+  "metadata": {
+    "packageAuthor": "Ethan",
+    "copyright": "Copyright 2026 Ethan. MIT License.",
+    "noPortablePersonalAuthorFields": [
+      "DMG",
+      "ZIP",
+      "plain source"
+    ]
+  }
+}

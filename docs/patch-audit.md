@@ -1,7 +1,8 @@
 # v1.0.1 telemetry ordering audit
 Author: Ethan
 Date: 2026-10-22
-Status: candidate verification in progress; v1.0.0 remains published.
+Status: all applicable local gates pass. Application source commit: 01a746c90180105c5966297e9b460745704ccbda.
+Release: [v1.0.1](https://github.com/Ethant35/codex-session-lens/releases/tag/v1.0.1).
 
 ## Reproduced defects
 The v1.0.0 packaged app passed forward file order but failed reverse file order, delayed metrics across restart, and delayed compaction. The global lastActivity gate discarded older metric/model evidence after newer status, marked discarded records seen, and let a stale context estimate survive late compaction. The corrected baseline run had 1 pass and 3 expected failures in 20.0 seconds. Earlier fixture navigation failures were corrected before accepting this reproduction.
@@ -18,9 +19,24 @@ The transactional v1 migration keeps preferences and known history, seeds metric
 - [Electron automated testing](https://www.electronjs.org/docs/latest/tutorial/automated-testing): tests drive the real packaged app. No unit/component tests or model/API mocks are used.
 
 ## Verification gates
-Candidate build/type checks pass. Ten focused ordering/upgrade checks passed, followed by 22 deterministic checks. The final primary run with corrected upstream envelopes and both upgrade cases passed 24/24 in 36.7 seconds. The real Codex CLI and desktop checks passed 2/2: input14971/output10/cached7168 matched both the actual rollout and CLI completion. A fresh cache ingested terminal status first, restarted, then ingested the original rollout plus an overlapping copy; rendered metrics and model still matched.
+| Gate | Result | Evidence |
+| --- | --- | --- |
+| Released v1 baseline | 1 pass / 3 reproduced failures | Reverse file order, restart with late usage, late compaction |
+| Primary before background mode | 24/24, 36.7s | Includes both actual v1 database upgrade cases |
+| Final primary background suite | 23/23, 31.2s | Every launch checks hidden/unfocused/non-focusable window and hidden Dock icon |
+| Clean clone from GitHub | 23/23, 32.4s | npm ci, package build, exact application source commit above |
+| Final actual CLI/desktop | 2/2, 13.5s | Input15827/output10/cached7168 matches real rollout and CLI; terminal-first restart/overlap replay also matches |
+| DMG-installed background app | 5/5, 6.9s | Navigation, both file orders, restart/overlap and fatal-error exit |
+| Native installed CLI shutdown | PASS | --background without debugger; SIGTERM uses app.quit, exit0, SQLite integrity OK |
+| Privacy and Clear | PASS | Zero observed outbound events; private payload sentinel excluded; Clear removes observations |
+| Build identity | PASS | Primary, clean and installed app.asar SHA256 match |
+| Production dependency audit | PASS | Zero vulnerabilities; unchanged eight moderate build-tool findings remain disclosed |
 
-Remaining before publication: final deterministic result, independent clean checkout build/tests, DMG installation/native shutdown, hash checks, sanitized evidence and release verification. GitHub Actions are disabled and have zero runs. No workflow is created.
+[Sanitized test results](patch-acceptance-results.json), [real evidence](patch-real-evidence.json), [privacy evidence](patch-privacy-evidence.json), [native install evidence](patch-install-evidence.json), and [artifact hashes](patch-release-evidence.json). Raw rollouts, traces and NetLogs remain local. No tests were skipped or flaky in the final acceptance runs. The intentional crash test validates exit1; that expected process failure is a passing test.
+
+A first crash-check run found that Playwright invalidates its process accessor after exit. The harness now retains the child-process handle at launch; the final crash test passes. The existing inspector shutdown workaround remains confined to the test harness. Native installed shutdown was tested without the inspector.
+
+Commands: `npm run package:mac`; `npm run test:e2e`; `npm run test:e2e:real`; installed `LENS_EXECUTABLE` override with SL13, SL15, ORDER01 and ORDER02; clean clone `npm ci`, package and deterministic suite. The v1 migration gate ran before the visible-test opt-in was introduced. Actions remain disabled; no workflow is created.
 
 ## Limits
 Timestamp conflicts are deliberately conservative, including same-file conflicts. Wall-clock timestamps are not proof of source truth. Rebuilding a changed session costs time proportional to its retained telemetry history plus sorting; raw message payloads are not retained. v1 incomplete history cannot be recovered without its sources. Existing manual-selection, last-request-context-estimate, Apple Silicon-only validation and unsigned/non-notarized distribution limits remain. The requested --background command-line mode was added during verification so tests can run without opening windows or taking focus. No telemetry display feature was added.

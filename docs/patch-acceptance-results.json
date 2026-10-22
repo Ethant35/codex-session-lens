@@ -1,0 +1,895 @@
+{
+  "author": "Ethan",
+  "version": "1.0.1",
+  "applicationSourceCommit": "01a746c90180105c5966297e9b460745704ccbda",
+  "runs": [
+    {
+      "label": "released-baseline",
+      "stats": {
+        "startTime": "2026-10-22T19:43:44.159Z",
+        "duration": 19965.752,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 3,
+        "flaky": 0
+      },
+      "tests": [
+        {
+          "name": "ORDER-01: file order forward preserves model, usage and status",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 757
+            }
+          ]
+        },
+        {
+          "name": "ORDER-01: file order reverse preserves model, usage and status",
+          "status": "unexpected",
+          "results": [
+            {
+              "status": "failed",
+              "durationMs": 5540
+            }
+          ]
+        },
+        {
+          "name": "ORDER-02: late metrics survive restart and overlapping replay after newer status",
+          "status": "unexpected",
+          "results": [
+            {
+              "status": "failed",
+              "durationMs": 7076
+            }
+          ]
+        },
+        {
+          "name": "ORDER-03: late compaction invalidates an earlier sample without dropping metrics",
+          "status": "unexpected",
+          "results": [
+            {
+              "status": "failed",
+              "durationMs": 5647
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "primary-before-background",
+      "stats": {
+        "startTime": "2026-10-22T19:48:37.974Z",
+        "duration": 36726.341,
+        "expected": 24,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "tests": [
+        {
+          "name": "SL-01: clean launch shows empty state and usable settings",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 661
+            }
+          ]
+        },
+        {
+          "name": "SL-02: discovers a session and renders exact model and cumulative metrics",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 507
+            }
+          ]
+        },
+        {
+          "name": "SL-03: appended telemetry updates the rendered metrics within five seconds",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2357
+            }
+          ]
+        },
+        {
+          "name": "SL-04: switching sessions keeps each session metrics isolated",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 735
+            }
+          ]
+        },
+        {
+          "name": "SL-05: cumulative token_count and overlapping usage records are not added together",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2360
+            }
+          ]
+        },
+        {
+          "name": "SL-06: context estimate requires complete latest usage and a known limit",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2689
+            }
+          ]
+        },
+        {
+          "name": "SL-07: recorded compaction appears in the selected session timeline",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 681
+            }
+          ]
+        },
+        {
+          "name": "SL-08: malformed, partial, rotated, and truncated files retain valid history and report errors",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 3951
+            }
+          ]
+        },
+        {
+          "name": "SL-09: preferences, selected session, recent history, and window bounds persist after restart",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 1821
+            }
+          ]
+        },
+        {
+          "name": "SL-10: distinguishable child sessions are attributed to the correct parent",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 581
+            }
+          ]
+        },
+        {
+          "name": "SL-13: packaged Apple Silicon app launches and supports navigation, directories, and keyboard search",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2177
+            }
+          ]
+        },
+        {
+          "name": "SL-08 additional: an in-place rewrite that grows the file replays safely",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2508
+            }
+          ]
+        },
+        {
+          "name": "SL-04 additional: mismatched identities and invalid counts cannot contaminate a session",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2785
+            }
+          ]
+        },
+        {
+          "name": "UPGRADE: v1 cache replays previously suppressed records",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2541
+            }
+          ]
+        },
+        {
+          "name": "UPGRADE: v1 cache retains removed source history",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 1405
+            }
+          ]
+        },
+        {
+          "name": "ORDER-01: file order forward preserves model, usage and status",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 466
+            }
+          ]
+        },
+        {
+          "name": "ORDER-01: file order reverse preserves model, usage and status",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 497
+            }
+          ]
+        },
+        {
+          "name": "ORDER-04: regression retention is chronological (forward)",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 605
+            }
+          ]
+        },
+        {
+          "name": "ORDER-04: regression retention is chronological (reverse)",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 549
+            }
+          ]
+        },
+        {
+          "name": "ORDER-05: ambiguous equal-time records stay unavailable (forward)",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 694
+            }
+          ]
+        },
+        {
+          "name": "ORDER-05: ambiguous equal-time records stay unavailable (reverse)",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 704
+            }
+          ]
+        },
+        {
+          "name": "ORDER-02: late metrics survive restart and overlapping replay after newer status",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 1838
+            }
+          ]
+        },
+        {
+          "name": "ORDER-03: late compaction invalidates an earlier sample without dropping metrics",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 673
+            }
+          ]
+        },
+        {
+          "name": "SL-14 local ingestion makes no HTTP uploads; renderer cannot connect or access Node",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2400
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "primary-background",
+      "stats": {
+        "startTime": "2026-10-22T19:53:55.834Z",
+        "duration": 31163.395,
+        "expected": 23,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "tests": [
+        {
+          "name": "SL-01: clean launch shows empty state and usable settings",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 1859
+            }
+          ]
+        },
+        {
+          "name": "SL-02: discovers a session and renders exact model and cumulative metrics",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 498
+            }
+          ]
+        },
+        {
+          "name": "SL-03: appended telemetry updates the rendered metrics within five seconds",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2231
+            }
+          ]
+        },
+        {
+          "name": "SL-04: switching sessions keeps each session metrics isolated",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 522
+            }
+          ]
+        },
+        {
+          "name": "SL-05: cumulative token_count and overlapping usage records are not added together",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 1723
+            }
+          ]
+        },
+        {
+          "name": "SL-06: context estimate requires complete latest usage and a known limit",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2550
+            }
+          ]
+        },
+        {
+          "name": "SL-07: recorded compaction appears in the selected session timeline",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 581
+            }
+          ]
+        },
+        {
+          "name": "SL-08: malformed, partial, rotated, and truncated files retain valid history and report errors",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 4336
+            }
+          ]
+        },
+        {
+          "name": "SL-09: preferences, selected session, recent history, and window bounds persist after restart",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 973
+            }
+          ]
+        },
+        {
+          "name": "SL-10: distinguishable child sessions are attributed to the correct parent",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 530
+            }
+          ]
+        },
+        {
+          "name": "SL-13: packaged Apple Silicon app launches and supports navigation, directories, and keyboard search",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2272
+            }
+          ]
+        },
+        {
+          "name": "SL-08 additional: an in-place rewrite that grows the file replays safely",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2497
+            }
+          ]
+        },
+        {
+          "name": "SL-04 additional: mismatched identities and invalid counts cannot contaminate a session",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2643
+            }
+          ]
+        },
+        {
+          "name": "SL-15: background main-process failures exit nonzero without waiting for a dialog",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 339
+            }
+          ]
+        },
+        {
+          "name": "ORDER-01: file order forward preserves model, usage and status",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 437
+            }
+          ]
+        },
+        {
+          "name": "ORDER-01: file order reverse preserves model, usage and status",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 404
+            }
+          ]
+        },
+        {
+          "name": "ORDER-04: regression retention is chronological (forward)",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 406
+            }
+          ]
+        },
+        {
+          "name": "ORDER-04: regression retention is chronological (reverse)",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 600
+            }
+          ]
+        },
+        {
+          "name": "ORDER-05: ambiguous equal-time records stay unavailable (forward)",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 570
+            }
+          ]
+        },
+        {
+          "name": "ORDER-05: ambiguous equal-time records stay unavailable (reverse)",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 513
+            }
+          ]
+        },
+        {
+          "name": "ORDER-02: late metrics survive restart and overlapping replay after newer status",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 1346
+            }
+          ]
+        },
+        {
+          "name": "ORDER-03: late compaction invalidates an earlier sample without dropping metrics",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 533
+            }
+          ]
+        },
+        {
+          "name": "SL-14 local ingestion makes no HTTP uploads; renderer cannot connect or access Node",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2257
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "clean-background",
+      "stats": {
+        "startTime": "2026-10-22T19:55:28.905Z",
+        "duration": 32431.607,
+        "expected": 23,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "tests": [
+        {
+          "name": "SL-01: clean launch shows empty state and usable settings",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2030
+            }
+          ]
+        },
+        {
+          "name": "SL-02: discovers a session and renders exact model and cumulative metrics",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 674
+            }
+          ]
+        },
+        {
+          "name": "SL-03: appended telemetry updates the rendered metrics within five seconds",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2240
+            }
+          ]
+        },
+        {
+          "name": "SL-04: switching sessions keeps each session metrics isolated",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 497
+            }
+          ]
+        },
+        {
+          "name": "SL-05: cumulative token_count and overlapping usage records are not added together",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2201
+            }
+          ]
+        },
+        {
+          "name": "SL-06: context estimate requires complete latest usage and a known limit",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2488
+            }
+          ]
+        },
+        {
+          "name": "SL-07: recorded compaction appears in the selected session timeline",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 497
+            }
+          ]
+        },
+        {
+          "name": "SL-08: malformed, partial, rotated, and truncated files retain valid history and report errors",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 3813
+            }
+          ]
+        },
+        {
+          "name": "SL-09: preferences, selected session, recent history, and window bounds persist after restart",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 1231
+            }
+          ]
+        },
+        {
+          "name": "SL-10: distinguishable child sessions are attributed to the correct parent",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 530
+            }
+          ]
+        },
+        {
+          "name": "SL-13: packaged Apple Silicon app launches and supports navigation, directories, and keyboard search",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 1945
+            }
+          ]
+        },
+        {
+          "name": "SL-08 additional: an in-place rewrite that grows the file replays safely",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2459
+            }
+          ]
+        },
+        {
+          "name": "SL-04 additional: mismatched identities and invalid counts cannot contaminate a session",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2572
+            }
+          ]
+        },
+        {
+          "name": "SL-15: background main-process failures exit nonzero without waiting for a dialog",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 310
+            }
+          ]
+        },
+        {
+          "name": "ORDER-01: file order forward preserves model, usage and status",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 443
+            }
+          ]
+        },
+        {
+          "name": "ORDER-01: file order reverse preserves model, usage and status",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 414
+            }
+          ]
+        },
+        {
+          "name": "ORDER-04: regression retention is chronological (forward)",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 1402
+            }
+          ]
+        },
+        {
+          "name": "ORDER-04: regression retention is chronological (reverse)",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 798
+            }
+          ]
+        },
+        {
+          "name": "ORDER-05: ambiguous equal-time records stay unavailable (forward)",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 566
+            }
+          ]
+        },
+        {
+          "name": "ORDER-05: ambiguous equal-time records stay unavailable (reverse)",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 610
+            }
+          ]
+        },
+        {
+          "name": "ORDER-02: late metrics survive restart and overlapping replay after newer status",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 1490
+            }
+          ]
+        },
+        {
+          "name": "ORDER-03: late compaction invalidates an earlier sample without dropping metrics",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 499
+            }
+          ]
+        },
+        {
+          "name": "SL-14 local ingestion makes no HTTP uploads; renderer cannot connect or access Node",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2243
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "installed-background",
+      "stats": {
+        "startTime": "2026-10-22T19:54:46.447Z",
+        "duration": 6890.3820000000005,
+        "expected": 5,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "tests": [
+        {
+          "name": "SL-13: packaged Apple Silicon app launches and supports navigation, directories, and keyboard search",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 3471
+            }
+          ]
+        },
+        {
+          "name": "SL-15: background main-process failures exit nonzero without waiting for a dialog",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 299
+            }
+          ]
+        },
+        {
+          "name": "ORDER-01: file order forward preserves model, usage and status",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 523
+            }
+          ]
+        },
+        {
+          "name": "ORDER-01: file order reverse preserves model, usage and status",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 406
+            }
+          ]
+        },
+        {
+          "name": "ORDER-02: late metrics survive restart and overlapping replay after newer status",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 1853
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "final-real-background",
+      "stats": {
+        "startTime": "2026-10-22T19:56:41.353Z",
+        "duration": 13453.157,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "tests": [
+        {
+          "name": "SL-11 actual Codex CLI session has the same rendered usage as its real rollout",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 10694
+            }
+          ]
+        },
+        {
+          "name": "SL-12 installed Codex desktop is present; manual selection is explicitly unsupported for automatic switching",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "durationMs": 2485
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

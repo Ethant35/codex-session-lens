@@ -1,0 +1,14 @@
+{
+  "author": "Ethan",
+  "timestamp": "2026-10-22T19:54:26.933Z",
+  "httpRequests": 0,
+  "outboundNetlogEvents": 0,
+  "cspProbeBlocked": true,
+  "privatePayloadExcluded": true,
+  "clearRemovedObservations": true,
+  "security": {
+    "sandbox": true,
+    "contextIsolation": true,
+    "nodeIntegration": false
+  }
+}

@@ -1,6 +1,6 @@
 # Local acceptance
 
-The v1.0.1 candidate audit is recorded in [docs/patch-audit.md](docs/patch-audit.md). The historical v1.0.0 record follows.
+The completed v1.0.1 local audit is recorded in [docs/patch-audit.md](docs/patch-audit.md). The historical v1.0.0 record follows.
 
 Author: Ethan
 Date: 2026-10-22, America/Los_Angeles

@@ -1,0 +1,18 @@
+{
+  "author": "Ethan",
+  "timestamp": "2026-10-22T19:55:19Z",
+  "mode": "native --background without debugger",
+  "exitCode": 0,
+  "signal": "SIGTERM through app.quit",
+  "sqliteIntegrity": "ok",
+  "totals": {
+    "input": 2000,
+    "output": 200,
+    "cached": 800
+  },
+  "model": "gpt-6-luna",
+  "contextPercent": 25,
+  "appVersion": "1.0.1",
+  "copyright": "Copyright 2026 Ethan. MIT License.",
+  "appAsarSha256": "39cf6a7c99368bfaef1a09e579b5a8242d7d5d1c4bf20e30c44cfb5e65922182"
+}
