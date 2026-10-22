@@ -1,6 +1,6 @@
 {
   "name": "codex-session-lens",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Local session telemetry companion HUD for Codex",
   "author": "Ethan",
   "license": "MIT",
@@ -9,7 +9,7 @@
     "dev": "npm run build && electron .",
     "build": "tsc --noEmit && vite build && node scripts/build-main.mjs",
     "package:mac": "npm run build && electron-builder --mac dmg zip --arm64 --publish never",
-    "test:e2e": "playwright test tests/acceptance.spec.ts tests/privacy.spec.ts tests/edge.spec.ts",
+    "test:e2e": "playwright test tests/acceptance.spec.ts tests/privacy.spec.ts tests/edge.spec.ts tests/order.spec.ts",
     "test:e2e:real": "playwright test tests/real.spec.ts"
   },
   "build": {

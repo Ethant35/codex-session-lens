@@ -31,6 +31,8 @@ const usage = (value: UsageFixture) => ({
   input_tokens: value.input,
   output_tokens: value.output,
   cached_input_tokens: value.cached ?? 0,
+  reasoning_output_tokens: 0,
+  total_tokens: value.input + value.output,
 });
 
 export async function launchLens(source?: string, data?: string): Promise<LensRun> {
@@ -125,12 +127,12 @@ export async function appendTokenCount(path: string, id: string, opts: {
   const event = opts.event ?? 'token_count';
   const payload = event === 'token_count'
     ? { type: 'token_count', thread_id: id, info }
-    : { type: 'token_usage_record', thread_id: id, response_id: `response-${opts.timestamp ?? Date.now()}`, thread_token_usage: usage(opts.total), usage: { ...usage(opts.latest), total_tokens: opts.latest.input + opts.latest.output }, ...(opts.contextWindow === undefined ? {} : { model_context_window: opts.contextWindow }) };
-  await appendFile(path, `${JSON.stringify({ timestamp: iso(opts.timestamp), type: 'event_msg', payload })}\n`, { mode: '0600' });
+    : { thread_id: id, turn_id: 'fixture-turn', session_id:'fixture-session', root_turn_id:'fixture-turn', response_id: `response-${opts.timestamp ?? Date.now()}`, thread_token_usage: usage(opts.total), turn_token_usage:usage(opts.total), usage: usage(opts.latest) };
+  await appendFile(path, `${JSON.stringify({ timestamp: iso(opts.timestamp), type: event==='token_count'?'event_msg':'token_usage_record', payload })}\n`, { mode: '0600' });
 }
 
 export async function appendEvent(path: string, event: string, id: string, timestamp?: string, extra: Record<string, unknown> = {}): Promise<void> {
-  await appendFile(path, `${JSON.stringify({ timestamp: iso(timestamp), type: event, payload: { thread_id: id, ...extra } })}\n`, { mode: 0o600 });
+  await appendFile(path, `${JSON.stringify({ timestamp: iso(timestamp), type: event==='compacted'?'compacted':'event_msg', payload: { type:event, thread_id: id, ...extra } })}\n`, { mode: 0o600 });
 }
 
 export async function appendRaw(path: string, text: string): Promise<void> {

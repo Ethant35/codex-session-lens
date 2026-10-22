@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { launchLens, addSession, appendTokenCount } from './helpers';
+import { launchLens, addSession, appendTokenCount, appendRaw, record } from './helpers';
 
 test('SL-14 local ingestion makes no HTTP uploads; renderer cannot connect or access Node', async () => {
   const run = await launchLens();
@@ -11,6 +11,9 @@ test('SL-14 local ingestion makes no HTTP uploads; renderer cannot connect or ac
     const networkRequests: string[] = [];
     run.page.on('request', request => {if (/^https?:|^wss?:/.test(request.url())) networkRequests.push(request.method());});
     const file = await addSession(run.source,{id:'privacy-session',model:'gpt-6-luna'});
+    const secret='PRIVATE_MESSAGE_MUST_NOT_ENTER_TELEMETRY_CACHE';
+    await appendRaw(file,JSON.stringify(record('response_item',{type:'message',content:secret}))+'\n');
+    await appendRaw(file,JSON.stringify(record('turn_context',{model:'gpt-6-luna',developer_instructions:secret}))+'\n');
     await appendTokenCount(file,'privacy-session',{total:{input:900,output:90,cached:300},latest:{input:900,output:90,cached:300}});
     await run.page.getByTestId('session-privacy-session').click();
     await expect(run.page.getByTestId('total-input')).toHaveText('900');
@@ -32,11 +35,15 @@ test('SL-14 local ingestion makes no HTTP uploads; renderer cannot connect or ac
     const denied = await run.page.evaluate(async () => {try {await fetch('https://example.com/telemetry',{method:'POST',body:'synthetic-probe'});return false;}catch{return true;}});
     expect(denied).toBe(true);
     await run.page.getByRole('button',{name:'Settings',exact:true}).click();
+    await run.page.getByRole('button',{name:'Rescan',exact:true}).click();
+    const cache=(await readFile(join(run.data,'telemetry.sqlite'))).toString('utf8');
+    expect(cache).toContain('privacy-session');expect(cache).not.toContain(secret);
     await run.page.getByRole('button',{name:'Clear telemetry',exact:true}).click();
     await run.page.getByRole('button',{name:'Confirm clear'}).click();
     await expect(run.page.getByText('No sessions found yet.')).toBeVisible();
     await expect(run.page.getByLabel('Pause ingestion')).toBeChecked();
+    expect((await readFile(join(run.data,'telemetry.sqlite'))).toString('utf8')).not.toContain('privacy-session');
     await mkdir('.local',{recursive:true});
-    await writeFile('.local/privacy-evidence.json',JSON.stringify({author:'Ethan',timestamp:new Date().toISOString(),httpRequests:networkRequests.length,outboundNetlogEvents:outbound.length,cspProbeBlocked:denied,security},null,2));
+    await writeFile('.local/privacy-evidence.json',JSON.stringify({author:'Ethan',timestamp:new Date().toISOString(),httpRequests:networkRequests.length,outboundNetlogEvents:outbound.length,cspProbeBlocked:denied,privatePayloadExcluded:true,clearRemovedObservations:true,security},null,2));
   } finally {await run.close();}
 });
