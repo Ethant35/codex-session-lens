@@ -11,10 +11,17 @@ const usage={input_tokens:1200,output_tokens:300,cached_input_tokens:500,total_t
 const telemetry=[record('turn_context',{model:'gpt-6-luna'},t(1)),record('event_msg',{type:'token_count',info:{total_token_usage:usage,last_token_usage:usage,model_context_window:6000}},t(2))];
 
 for(const missing of [false,true]) test(`UPGRADE: v1 cache ${missing?'retains removed source history':'replays previously suppressed records'}`,async()=>{
+ // v1 predates --background. Never launch that visible baseline implicitly.
+ expect(process.env.LENS_ALLOW_VISIBLE_BASELINE,'v1 migration needs explicit LENS_ALLOW_VISIBLE_BASELINE=1; ordinary tests stay hidden').toBe('1');
  const current=process.env.LENS_EXECUTABLE;
+ const visible=process.env.LENS_VISIBLE_TESTS;
+ process.env.LENS_VISIBLE_TESTS='1';
  process.env.LENS_EXECUTABLE=process.env.LENS_BASELINE_EXECUTABLE || resolve('.local/v1.0.0/Codex Session Lens.app/Contents/MacOS/Codex Session Lens');
  let run;
- try{run=await launchLens();}finally{if(current===undefined)delete process.env.LENS_EXECUTABLE;else process.env.LENS_EXECUTABLE=current;}
+ try{run=await launchLens();}finally{
+  if(current===undefined)delete process.env.LENS_EXECUTABLE;else process.env.LENS_EXECUTABLE=current;
+  if(visible===undefined)delete process.env.LENS_VISIBLE_TESTS;else process.env.LENS_VISIBLE_TESTS=visible;
+ }
  const root=run.root,source=run.source,data=run.data;
  try{
   await writeFile(join(source,'a.jsonl'),lines(missing?telemetry:[record('event_msg',{type:'task_complete',turn_id:'turn-1'},t(5))]));

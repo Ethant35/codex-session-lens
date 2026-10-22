@@ -2,6 +2,9 @@ import { _electron as electron, type ElectronApplication, type Page } from '@pla
 import { appendFile, mkdir, mkdtemp, rename, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import type {ChildProcess} from 'node:child_process';
+
+const processes=new WeakMap<ElectronApplication,ChildProcess>();
 
 export interface LensRun {
   app: ElectronApplication;
@@ -44,13 +47,23 @@ export async function launchLens(source?: string, data?: string): Promise<LensRu
   const executablePath = process.env.LENS_EXECUTABLE || resolve('release/mac-arm64/Codex Session Lens.app/Contents/MacOS/Codex Session Lens');
   const app = await electron.launch({
     executablePath,
-    args: [],
+    args: process.env.LENS_VISIBLE_TESTS==='1'?[]:['--background'],
     env: { ...process.env, LENS_DATA_DIR: dataDir, LENS_SESSION_DIR: sessionDir },
   });
+  processes.set(app,app.process());
   let page: Page;
   try {
     page = await app.firstWindow();
     await page.getByText('CODEX SESSION LENS', { exact: true }).waitFor();
+    if(process.env.LENS_VISIBLE_TESTS!=='1'){
+      const state=await app.evaluate(({app,BrowserWindow})=>({
+        visible:BrowserWindow.getAllWindows().some(w=>w.isVisible()),
+        focused:BrowserWindow.getAllWindows().some(w=>w.isFocused()),
+        focusable:BrowserWindow.getAllWindows().some(w=>w.isFocusable()),
+        dock:process.platform==='darwin'?app.dock?.isVisible():false,
+      }));
+      if(state.visible || state.focused || state.focusable || state.dock)throw new Error('Background test mode must not show or focus the app');
+    }
   } catch (error) {
     await stopApp(app);
     await rm(root, { recursive: true, force: true });
@@ -74,7 +87,7 @@ const closedApps = new WeakSet<ElectronApplication>();
 async function stopApp(app: ElectronApplication): Promise<void> {
   if (closedApps.has(app)) return;
   closedApps.add(app);
-  const child = app.process();
+  const child = processes.get(app);
   if (!child || child.exitCode !== null) return;
   let timeout: ReturnType<typeof setTimeout>;
   const exited = new Promise<void>(resolve => child.once('exit',()=>resolve()));

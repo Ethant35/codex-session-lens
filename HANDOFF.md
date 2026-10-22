@@ -4,7 +4,7 @@ Updated: 2026-10-22, America/Los_Angeles
 
 Active patch audit on codex/telemetry-order-audit. v1.0.0 remains the published baseline.
 
-Focus: reproduce and repair order-dependent telemetry across overlapping files and restarts. No new UI features. Preserve disabled Actions and the supported recurring usage check. Current initial inspection found one global lastActivity gate suppressing older metric/model records after newer status records. No production changes or passing patch gates yet. Test windows must be cleaned up automatically.
+Focus: reproduce and repair order-dependent telemetry across overlapping files and restarts. No new UI features. Preserve disabled Actions and the supported recurring usage check. Current initial inspection found one global lastActivity gate suppressing older metric/model records after newer status records. No production changes or passing patch gates yet. Test windows must be cleaned up automatically. Ethan now requires unobtrusive testing: use the new --background mode (default in test helpers and previews); never opt into visible tests without his request. Do not rerun the visible v1 migration baseline: its two cases already passed before this request.
 
 Prior release completion record follows:
 Repository: https://github.com/Ethant35/codex-session-lens
