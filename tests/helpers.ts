@@ -68,16 +68,34 @@ export async function closeLens(run: LensRun, removeFiles = true): Promise<void>
   if (removeFiles) await rm(run.root, { recursive: true, force: true });
 }
 
+const closedApps = new WeakSet<ElectronApplication>();
 async function stopApp(app: ElectronApplication): Promise<void> {
+  if (closedApps.has(app)) return;
+  closedApps.add(app);
   const child = app.process();
   if (!child || child.exitCode !== null) return;
   let timeout: ReturnType<typeof setTimeout>;
+  const exited = new Promise<void>(resolve => child.once('exit',()=>resolve()));
+  const quit = new Promise<void>(resolve => app.on('console',message => {
+    if (message.text() === 'LENS_TEST_WILL_QUIT') resolve();
+  }));
   try {
-    await Promise.race([
-      app.close(),
-      new Promise<never>((_,reject) => { timeout=setTimeout(() => {child.kill('SIGKILL');reject(new Error('App did not close cleanly in five seconds'));},5000); }),
-    ]);
-  } finally { clearTimeout(timeout!); if (child.exitCode === null) child.kill('SIGKILL'); }
+    // Observe the real lifecycle after the application's SQLite close listener.
+    // Electron's attached inspector can keep an otherwise-quit test process alive.
+    await app.evaluate(({app}) => {
+      app.once('will-quit',()=>console.log('LENS_TEST_WILL_QUIT'));
+      setTimeout(()=>app.quit(),20);
+    });
+    await Promise.race([quit,exited,new Promise<never>((_,reject)=>{
+      timeout=setTimeout(()=>reject(new Error('App did not reach will-quit in five seconds')),5000);
+    })]);
+  } finally {
+    clearTimeout(timeout!);
+    // Release only the test debugger process. Normal native Quit is verified separately.
+    if (child.exitCode === null) child.kill('SIGTERM');
+    await Promise.race([exited,new Promise<void>(resolve=>setTimeout(resolve,1000))]);
+    if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');
+  }
 }
 
 export async function addSession(source: string, fixture: SessionFixture): Promise<string> {

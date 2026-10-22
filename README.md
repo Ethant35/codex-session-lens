@@ -7,7 +7,7 @@ A local-first macOS companion HUD for individual Codex sessions. It keeps cumula
 
 Download the Apple Silicon DMG from [Releases](https://github.com/Ethant35/codex-session-lens/releases), open it and drag **Codex Session Lens** into Applications. Open the app, then choose a session by ID or model. The development release is unsigned and not notarized. If macOS blocks it, review the source and use System Settings → Privacy & Security → Open Anyway for this app. Do not disable system security protections.
 
-Requires Apple Silicon and a macOS version supported by Electron 45. The acceptance environment is recorded in ACCEPTANCE.md. No account, backend, API key or network access is required by the HUD.
+Requires Apple Silicon and a macOS version supported by Electron 45. Validated on macOS 27.2; older macOS releases have not been tested. The acceptance environment is recorded in ACCEPTANCE.md. No account, backend, API key or network access is required by the HUD.
 
 ## Use
 
@@ -15,7 +15,7 @@ Requires Apple Silicon and a macOS version supported by Electron 45. The accepta
 - Read cumulative input/output and cached input (a subset of input), with latest-request usage shown separately.
 - Context is explicitly a last-request estimate when a complete sample and limit exist. Current effective occupancy is unavailable. Cumulative tokens are never used as context occupancy.
 - Expand compaction history and distinguishable child activity. Child metrics stay separate.
-- Settings controls system/light/dark theme, always-on-top, source directories, pause/resume, diagnostics and clear history. Compact reduces spacing. Resize and move the window; bounds persist.
+- Settings controls system/light/dark theme, always-on-top, source directories, pause/resume, diagnostics and clear history. Compact reduces spacing and hides the latest-request detail strip. Resize and move the window; bounds persist.
 
 ## Telemetry sources and limits
 

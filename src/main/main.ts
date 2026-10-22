@@ -78,10 +78,13 @@ app.whenReady().then(async () => {
   app.on('activate',() => {if (!win) createWindow();});
 });
 app.on('window-all-closed',() => app.quit());
-app.on('before-quit', event => {
+app.on('before-quit', () => {
   if (closing || !store) return;
-  event.preventDefault();
-  if (win && !win.isDestroyed()) store.set('bounds',win.getBounds());
-  closing=true; clearInterval(timer); clearTimeout(saveBounds);
-  void ingestor.idle().finally(() => { store.close(); app.quit(); });
+  if (win && !win.isDestroyed()) {
+    try { store.set('bounds',win.getBounds()); } catch { /* Do not block shutdown if storage was removed. */ }
+  }
+  closing=true;
+  clearInterval(timer); clearTimeout(saveBounds);
+  ingestor.stop();
 });
+app.on('will-quit', () => { if (store) store.close(); });

@@ -16,4 +16,5 @@ const page=await app.firstWindow();await page.getByTestId('session-demo-session-
 await mkdir('.local',{recursive:true});await page.screenshot({path:'.local/hud-default.png'});
 await page.getByRole('button',{name:'Compact display'}).click();await page.screenshot({path:'.local/hud-compact.png'});
 console.log(await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,scrollHeight:document.documentElement.scrollHeight,clientHeight:document.documentElement.clientHeight})));
-}finally {await app.close();await rm(root,{recursive:true,force:true});}
+await page.getByRole('button',{name:'Settings',exact:true}).click();await page.getByLabel('Theme').selectOption('dark');await page.getByRole('button',{name:'Close settings'}).click();await page.screenshot({path:'.local/hud-dark.png'});
+}finally {const closed=app.waitForEvent('close');await app.evaluate(({app})=>{app.once('will-quit',()=>app.exit(0));setTimeout(()=>app.quit(),20)});await closed;await rm(root,{recursive:true,force:true});}

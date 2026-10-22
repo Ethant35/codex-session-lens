@@ -6,6 +6,7 @@ export interface Session {
   context: { used: number; limit: number; percent: number; kind: 'estimate' } | null;
   compactions: { timestamp: string; provenance: Provenance }[];
   parentId: string | null; provenance: Provenance | null;
+  sources?: { model?: Provenance; latest?: Provenance; status?: Provenance; parent?: Provenance };
   warnings: string[];
 }
 export interface Preferences {

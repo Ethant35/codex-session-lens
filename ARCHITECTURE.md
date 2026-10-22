@@ -1,7 +1,7 @@
 # Architecture
 Author: Ethan
 
-Codex Session Lens is a companion HUD, not a native Codex extension. Electron hosts a React renderer. TypeScript runs in both processes. A sandboxed preload exposes five narrow asynchronous operations. The renderer has no Node access, remote content, filesystem API, or general IPC interface. The main process checks the sender and validates preference inputs. Chromium requests outside the bundled renderer are blocked; the CSP disallows connections. There is no server, account integration, updater, analytics SDK, or credential reader.
+Codex Session Lens is a companion HUD, not a native Codex extension. Electron was selected for supported real-app Playwright automation and native window controls; its bundled Node SQLite avoids a separately compiled database addon. Electron hosts a React renderer. TypeScript runs in both processes. A sandboxed preload exposes five narrow asynchronous operations. The renderer has no Node access, remote content, filesystem API, or general IPC interface. The main process checks the sender and validates preference inputs. Chromium requests outside the bundled renderer are blocked; the CSP disallows connections. There is no server, account integration, updater, analytics SDK, or credential reader.
 
 ## Data path
 Configured directories → recursive read-only JSONL discovery → incremental UTF-8 framing → allowlisted telemetry projection → SQLite → validated IPC → React.

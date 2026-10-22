@@ -123,7 +123,8 @@ test('SL-07: recorded compaction appears in the selected session timeline', asyn
     await expect(run.page.getByText('Context compacted')).toBeVisible();
     await expect(run.page.getByTestId('context-value')).toHaveText('Unavailable');
     await select(run.page, 'uncompacted-session');
-    await run.page.getByText('Compaction history').click();
+    const history=run.page.locator('details').filter({has:run.page.getByText('Compaction history',{exact:true})});
+    if (!(await history.evaluate((node: HTMLDetailsElement)=>node.open))) await run.page.getByText('Compaction history').click();
     await expect(run.page.locator('.timeline')).toHaveCount(0);
     await expect(run.page.getByText('No recorded compaction events for this session.')).toBeVisible();
   } finally { await closeLens(run); }

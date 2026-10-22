@@ -178,7 +178,10 @@ function App() {
             <p className="context-note">ESTIMATE · {number.format(selected.context.used)} of {number.format(selected.context.limit)} tokens in the last request. Current context occupancy is unavailable.</p>
           </> : <p className="context-note">Current context occupancy is unavailable because the limit or effective occupancy could not be established.</p>}
         </div>
-        {selected.provenance && <Provenance {...selected.provenance} />}
+        <details className="metric-sources"><summary>Metric sources</summary>
+          {selected.provenance && <div><span className="section-label">Cumulative usage</span><Provenance {...selected.provenance} /></div>}
+          {Object.entries(selected.sources ?? {}).map(([metric,source]) => source && <div key={metric}><span className="section-label">{metric === 'latest' ? 'Latest request / context sample' : metric}</span><Provenance {...source} /></div>)}
+        </details>
         {selected.warnings.length > 0 && <div className="warnings">{selected.warnings.map((warning, index) => <p key={`${index}-${warning}`}>{warning}</p>)}</div>}
       </section>
 

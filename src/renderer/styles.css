@@ -188,7 +188,7 @@ button:disabled { opacity: .6; cursor: wait; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
 
 /* Keep core telemetry visible in a small companion window. */
-.session-picker summary { cursor: pointer; font-size: 12px; font-weight: 650; color: var(--accent); padding: 8px 0 0; }
+.session-picker summary { cursor: pointer; font-size: 12px; font-weight: 650; color: var(--teal-dark); padding: 8px 0 0; }
 .session-picker[open] summary { margin-bottom: 8px; }
 .app-shell[data-compact="true"] .session-bar { padding: 10px 14px; }
 .app-shell[data-compact="true"] .session-heading h1 { font-size: 14px; }
@@ -199,3 +199,7 @@ button:disabled { opacity: .6; cursor: wait; }
 .app-shell[data-compact="true"] .context-area { margin-top: 8px; padding-top: 8px; }
 .app-shell[data-compact="true"] .context-note { margin-bottom: 0; }
 .app-shell[data-compact="true"] .detail-card summary { padding: 10px; }
+
+.metric-sources { margin-top: 9px; font-size: 10px; color: var(--muted); }
+.metric-sources summary { cursor: pointer; }
+.metric-sources > div { margin-top: 7px; }
