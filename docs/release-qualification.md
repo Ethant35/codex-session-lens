@@ -1,41 +1,33 @@
 # Release qualification
 Author: Ethan
-Candidate:1.1.0; not published
+Version: 1.1.0, Apple Silicon / macOS 27.2
 
-## Build and sign locally
+## Reproduce the build
+Use the pinned lockfile and tested Node22.13.1/npm10.9.2 tools. Run `npm ci`, `npm run prepare:electron`, `npm run prepare:notices`, `npm test` and `npm run build`. Dependency lifecycle scripts stay disabled. `npm run package:mac` creates unsigned development artifacts. Production packaging uses `npx --no-install electron-builder --config electron-builder.release.cjs --mac zip --arm64 --publish never`.
 
-Use the pinned lockfile, Node22.13.1/npm10.9.2 and an Apple Silicon Mac. Run `npm ci`, `npm run prepare:electron`, `npm run prepare:notices`, `npm test` and `npm run build`. Automatic dependency scripts remain disabled. `npm run package:mac` creates unsigned development artifacts. Production candidates use:
+The release configuration requires Developer ID signing, hardened runtime and only the V8 JIT entitlement. Native bundles stage under the OS temporary codex-session-lens-release directory, outside synced Documents. File-provider FinderInfo metadata caused a prior signing failure in Documents; staging outside that folder resolved it. No signed bundle is edited after signing except supported ticket stapling.
 
-```sh
-npx --no-install electron-builder --config electron-builder.release.cjs --mac dmg zip --arm64 --publish never
-```
+## Apple qualification
+The final app ZIP submission **95e7f254-ade1-48c9-94c1-52e56e1478f0** was Accepted. Its Apple log reports no issues. The app was stapled and validated before its distribution ZIP was recreated with ditto. The final DMG was built from that stapled app using electron-builder's prepackaged mode and `-c.dmg.sign=true`.
 
-Native bundles stage in the OS temporary `codex-session-lens-release` directory, outside synced Documents folders. An initial signing attempt in Documents failed because FinderInfo metadata reappeared on a helper bundle. Apple documents this signing restriction in [QA1940](https://developer.apple.com/library/archive/qa/qa1940/_index.html). ZIP/DMG artifacts can be copied into the repository after signing. The release configuration requires Developer ID Application signing, hardened runtime and the V8 JIT entitlement. It does not grant unsigned executable memory, disable library validation, or embed credentials. Verify with `codesign --verify --deep --strict --verbose=2` and inspect `codesign -d --verbose=4 --entitlements :-`. Inspect all nested code, application version, license resources and runtime tests. Signing alone does not pass Gatekeeper or notarization.
+Final DMG submission **21ca9921-f378-41dd-af5c-a60130233632** was Accepted, with no issues in its log. The DMG was then stapled and validated. Gatekeeper accepts both the app and DMG as Notarized Developer ID. These are Session Lens submissions, not another app's approvals.
 
-## Notarization and credential boundary
+Credentials stay in the local Keychain. Use `xcrun notarytool submit <artifact> --keychain-profile <local-profile>` and retrieve that submission's own status/log. Never place passwords or private keys in source, reports or chat. [Apple's workflow](https://developer.apple.com/documentation/security/customizing-the-notarization-workflow) explains why a ZIP must be recreated after stapling its app.
 
-The Developer ID Application certificate for Ethan Tarnarider is available. On2026-10-22, metadata-only checks found no saved notarytool profile in accessible user Keychains, no standard App Store Connect private-key file, and no relevant configured environment variables. This does not rule out credentials stored elsewhere. No secret was read into a report or requested in chat.
+## Final artifact checks
+The SHA256SUMS.txt release asset records hashes after app/DMG stapling. GitHub normalizes spaces in asset names to periods; checksum filenames match the actual downloaded names. The original pre-staple Apple-submission ZIP hash is deliberately different from the final ZIP hash.
 
-If a profile exists elsewhere, provide only its name. Otherwise create a Keychain profile through Apple's supported local `xcrun notarytool store-credentials` flow. Enter credentials locally; do not paste passwords or private keys into chat. After profile setup, submit the signed artifact with `xcrun notarytool submit <artifact> --keychain-profile <profile> --wait`. Record the submission ID/status; retrieve the log if rejected. Do not distribute a rejected or unsubmitted candidate.
+Both uploaded draft assets were downloaded through GitHub and matched the final checksums. The DMG was marked with a quarantine attribute, assessed by Gatekeeper, mounted read-only without opening Finder, and copied into an isolated temporary Applications directory. The mount was ejected. That installed app retained its valid signature and stapled ticket and passed Gatekeeper with quarantine set. The downloaded ZIP was extracted separately; its app also retained its ticket and passed Gatekeeper.
 
-Staple and validate the accepted DMG. For ZIP distribution, notarize/staple the app before recreating the ZIP. Verify the final app with `spctl --assess --type execute --verbose=4`; verify the DMG with `stapler validate`, mount read-only, copy to a temporary installation directory and run hidden installed qualification. Record final hashes after stapling, not before. Do not replace Ethan's normal running app during testing.
+Installed application tests are programmatic, hidden and use isolated synthetic data. They cover clean setup, first exact telemetry, folder-picker cancel/save, local names and restart, sample exit/replay, settings, errors, cache recovery, native signal shutdown and actual1.0.1 upgrade/rollback. Final counts and release/public-download state are in readiness-evidence.json and production-readiness.md. The normal installed app is never replaced by qualification.
 
-## Required release evidence
+Native dialog responses are mocked at Electron's dialog boundary so tests do not show dialogs. This verifies IPC/options/cancel/save behavior, not hands-on interaction with the macOS chooser. No unfamiliar-user study, manual VoiceOver listening, or human Finder drag-and-drop test is claimed. No Gatekeeper bypass is used.
 
-- Current Node/build, hidden packaged UI/privacy/accessibility/lifecycle tests.
-- Actual previous1.0.1 cache upgrade/rollback and bounded live Codex compatibility.
-- Independent accounting properties, cancellation, large-load and sustained-scan evidence.
-- Current approved Semgrep with coverage limits and dependency signatures/advisories/licenses.
-- Signed/notarized/stapled installation checks and exact final artifact hashes.
-- Accurate operations, retention, backup/restore and troubleshooting documentation.
-- Repository Actions disabled before any push, PR, tag or release; no workflow dispatch.
+## Provenance and rollback
+The signed bundle declares version1.1.0 and Copyright2026 Ethan. MIT License. Package author is Ethan; runtime notices are retained. README screenshots contain only synthetic fixtures, with PNG Author metadata Ethan. ZIP/DMG archives do not expose a portable personal-author field; their identity is established by the signature and hashes.
 
-Notarization is currently an external gate. Remaining local gates are tracked in production-readiness.md. Neither a clean scan nor successful development package is a production-readiness claim.
+50 Node tests and the clean frozen dependency build pass; all6 emitted files match byte-for-byte. The signed app passed40 hidden checks. Core accounting/load/real-source evidence from the preceding phase remains applicable because this phase does not change the parser, projection or store. Earlier unnotarized archives remain local historical evidence only.
 
-## Current signed candidate evidence
+Updates are manual: quit, replace the app and retain application data. A closed-cache backup supports rollback; prior1.0.1 forward/rollback/forward behavior is tested. Revoke or replace this release if a supported-flow correctness, privacy or recovery defect is confirmed. There is no automatic rollout service or background update connection.
 
-DeveloperID signing succeeded after staging native bundles outside synced Documents. Deep/strict signature verification passed for the app and nested code. The main signature has hardened-runtime flags and only allow-jit entitlement. The signed app passed37 hidden packaged tests in48.5seconds. A copy from the read-only mounted DMG passed signature verification and5 installed tests, then all test processes/temp installation were removed and the DMG was ejected. The normal installed1.0.1 app was not replaced.
-
-Final Node46/46 and clean-install46/46 passed. All6 emitted main/preload/renderer/CLI files matched byte-for-byte across the normal and clean dependency trees. Runtime notices are present in the signed app; version1.1.0 and copyright Ethan were read from saved Info.plist. Personal package author remains Ethan. Archives do not provide a portable personal-author field.
-
-Signed, unnotarized ZIP/DMG candidates are retained under `.local/signed-candidate/`; hashes and sizes are in readiness-evidence.json. The failed earlier bundle is separately retained under `.local/signing-failed-synced-folder`. Ethan explicitly deferred notarization after no saved credential profile was found. No notarization submission, stapling, Gatekeeper approval or production release is claimed. Resume with an available Keychain profile name, then perform the remaining steps above.
+GitHub Actions must remain disabled before every push, merge, tag or release. No workflow, hook, global setting or Codex configuration changes are part of this release.

@@ -1,8 +1,7 @@
 # Download, first use and updates
 Author: Ethan
 
-This guide describes the planned 1.1.0 release journey. Version 1.0.1 is the current published release and has the earlier interface. Candidate 1.1.0 is not downloadable as a release until the final signed, notarized and stapled package passes the release checks. Download only artifacts linked from the repository's [Releases](https://github.com/Ethant35/codex-session-lens/releases) page.
-
+This guide covers the signed, notarized and stapled 1.1.0 Apple Silicon release. Download from the repository's [release page](https://github.com/Ethant35/codex-session-lens/releases/tag/v1.1.0).
 ## Install and get a first result
 
 1. Download the Apple Silicon DMG for the released version and open it.
@@ -34,4 +33,6 @@ For support, include app and macOS versions, the action, expected and actual beh
 
 ## Release verification status
 
-The current 1.1.0 candidate has prior local signed-package, hidden UI, upgrade and recovery evidence. Those checks predate the newly authorized usability and distribution phase. Final verification of the revised app and downloaded notarized release is pending. Before calling this journey verified, record the exact release hash and complete a clean install from the DMG, first scan and session selection, return launch with saved selection/alias, update from 1.0.1, and recovery from an isolated damaged-cache fixture. Record results and limits in the release evidence. Do not claim unfamiliar-user testing unless it occurs.
+The exact final DMG and ZIP were uploaded to the draft GitHub release, downloaded and matched against post-staple SHA256SUMS.txt. Both passed Gatekeeper and ticket validation. The read-only DMG copy installed into a temporary Applications directory passed40 hidden tests, including first result, names/settings persistence, sample exit/replay, actual1.0.1 update/rollback, damaged-cache recovery and native shutdown. The normal installed app was preserved. Final hashes and submission IDs are in [readiness-evidence.json](readiness-evidence.json).
+
+The workflow is programmatic with synthetic fixtures and isolated data. The macOS folder chooser is mocked at its Electron boundary to keep dialogs hidden. No unfamiliar-user study, manual VoiceOver session, or human Finder drag-and-drop test occurred. These limits do not replace the observed signature, notarization, quarantine assessment and installed-app results.

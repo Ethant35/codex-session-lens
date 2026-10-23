@@ -1,56 +1,47 @@
-# Session Lens handoff
+# Session Lens release handoff
 Author: Ethan
-Updated:2026-10-22, America/Los_Angeles
+Checkpoint:2026-10-22, America/Los_Angeles
 
-## Active usability and distribution phase
-Authorized 2026-10-22: native folder chooser, private user-assigned aliases, compact default HUD, clearer setup/return flow, final signing/notarization and qualified release. Keychain profile `ethan-notary` validated with history; Team Z2SL92S4B6. The previous deferral is lifted. Goal tool still reports paused and cannot be resumed by a tool; do not create a duplicate goal. Human steering now authorizes up to two new Luna High assistants, with no child spawning. usability_tests owns tests and hidden verification; release_docs completed its three assigned docs and was interrupted. Lead executes production and distribution. Usage checker active every55s; initial46% used. Keep hidden tests and normal app intact. Production source now has native directory chooser, bounded user aliases with control-character validation, compact fresh default, disclosure-based setup/details. Node49 and build passed. Unsigned UI package prepared; usability_tests completed hidden suite; both assistants are interrupted. Semgrep refresh same approved11packs in static_analysis_semgrep_4 (process72409). Final signed build passed39 hidden tests plus one prototype-ID regression (40total). Node50 passes; clean frozen install49 plus6 byte-identical emitted files (one test-only regression added afterward). Apple app submission95e7f254-ade1-48c9-94c1-52e56e1478f0 Accepted, log issues:null. App staple/Gatekeeper and final DMG generation are in progress in process79511. Final ZIP under .local/notarized-release is being recreated AFTER app stapling. No release published yet. Guard cell12 active; last62%used.
+## Qualified release
+Version1.1.0 is qualified on Apple Silicon/macOS27.2. This checkpoint precedes the final PR merge and publication. Inspect GitHub for live state; the release notes record the final public-delivery check. Do not rebuild or replace qualified artifact bytes.
 
-## Previous phase state
-Candidate1.1.0 is locally qualified and DeveloperID signed. **It is not notarized or published.** Ethan explicitly deferred notarization after asking us to check for saved credentials. No profile was found in accessible user Keychain metadata, relevant environment variables or standard App Store Connect key locations. No password/private key was printed or requested in chat. Remaining distribution work is deferred; do not mark the production-readiness goal complete.
-
-Repository: /Users/ethantarnarider/Documents/ChatGPT/Open source/codex-session-lens
+Repository: https://github.com/Ethant35/codex-session-lens
+PR: https://github.com/Ethant35/codex-session-lens/pull/4
+Release: https://github.com/Ethant35/codex-session-lens/releases/tag/v1.1.0
 Branch: codex/production-readiness
-Baseline:399d77dcc83da42baaa87b70b90a6e14088af939, released1.0.1
-Implementation commit:319115a (Ethan). Documentation/evidence follow in a separate commit. A draft PR is prepared from this branch; inspect its current URL/state with `gh pr view`. No new tag or production release. Installed1.0.1 app was not replaced.
+Implementation:6c00a85cffb94ab0a19480116ef32eb8c84caace, author/committer Ethan.
+Earlier core/CLI work:319115a and dde3e0f. Baseline:399d77d /1.0.1.
 
-## What changed
-- Pure Node CLI with explicit read-only sources, temporary cache default and separate retained CLI cache. `npm test` starts no app, network request or model call.
-- Serialized service operations and durable-before-visible settings. Explicit corrupt-cache backup/rebuild; locked/permission-denied caches offer retry and remain intact.
-- Bounded128-observation staging in one transaction; streaming ordered projection yields256 rows; stable nofollow regular file handles; responsive cancellation/rollback/replay.
-- Source-grounded fork/subagent boundary handling excludes inherited parent records. Arbitrary mixed IDs remain rejected. Missing ordinals are explicit diagnostics.
-- Short skip/replay/sample onboarding, actionable errors, stronger contrast, accessible names/regions/skip link and narrow/200%zoom wrapping.
-- All-mode sanitized fatal handling prevents Electron raw-error dialogs; native quit waits for cache close. Bounded100record/64KiB local diagnostics exclude raw content/paths/secrets.
-- Frozen npm install with automatic scripts disabled, explicit hash-checked Electron installer and retained runtime notices. Separate required DeveloperID/hardened-runtime release configuration.
+## Delivered
+Native folder chooser through trusted IPC: cancel changes nothing; Save persists the selected folders. Manual paths remain available on demand. Private user-assigned names stay bound to observed IDs without prompt-derived titles, source edits or automatic foreground switching. Duplicate names never merge sessions; prototype-like IDs survive save/restart. Fresh installs default compact; saved preferences remain intact. Setup/sample replay, request/source details, settings and return flows are documented.
+
+The pure Node CLI keeps routine tests quiet. Prior bounded ingestion/accounting/recovery/security improvements remain. No visible app tests or native dialogs were shown in this phase.
 
 ## Final evidence
-- Node46/46: CLI7,service10,recovery6,core20,diagnostics3.
-- Signed hidden package37/37: deterministic36 plus actual1.0.1 upgrade/rollback/forward. No retries/skips.
-- Read-only DMG copy: signature verification and5 installed startup/metrics/persistence/fatal/native-SIGTERM checks passed; mount ejected and test installation removed.
-- Actual CodexCLI0.163.0 and desktop/manual selection2/2. Real small Luna turn matched15130 input/10output/0cached through restart/overlap.
-- Clean frozen install passed46 Node tests and build; all6 emitted main/preload/renderer/CLI files were byte-identical.
-- Axe detects deliberate missing-alt control; tested states have zero serious/critical findings. Actual AX tree names, Tab/Enter, theme changes and200%zoom pass. Manual VoiceOver listening is not claimed.
-- Final full real-history scan154files/3,259,141,468bytes:61.36s,433,782,784byte peakRSS. Only oversized-record diagnostics remain (39 records in15 files above8MiB). All48 fork identity errors fixed; independent actual child comparison45 exact direct totals/3explicit same-time conflicts/0unexplained mismatch.
-- Synthetic50k scan723.73ms,+36.23MiBRSS,maxlag12.13ms;10ms cancel10.10ms/no partial commit; full138file synthetic shape27.87s/+75.47MiB/maxlag13.32ms. Sparse shape and120s soak limits are in core-readiness.md.
-- Semgrep Community1.182.1 final11packs:7 reviewed heuristics (2WARNING bounds expressions,5INFO longlines), no confirmed exploit.15 raw rule-parse failures and partial renderer parsing are disclosed; no failed/skipped packs. Local outputs static_analysis_semgrep_3; rule revisions saved, clones removed. No Pro/metrics/cloud/CI/autofix.
-- npm audit0 advisories; isolated npm11 signature auditor returned no missing/invalid signatures after npm10 failed on a key issue. Runtime notices present; package author and Info.plist copyright Ethan verified.
+-50 Node tests and50 tests from clean frozen install; all6 emitted files byte-identical.
+-40 hidden signed-package checks and40 checks from the exact GitHub-downloaded DMG installation, no retries/skips/failures. Includes actual1.0.1 forward/rollback/forward, first telemetry, aliases/settings/restart, sample/replay, filesystem/SQLite failures, privacy, native shutdown and recovery.
+-Axe positive control, no serious/critical findings, AX tree/keyboard, themes/narrow/200%zoom. A reproduced transient theme contrast defect was fixed by removing button color transitions.
+-Approved Semgrep Community1.182.1 same11packs:8 reviewed heuristics, no confirmed exploit;15 rule-pattern errors and6 partial renderer parses disclosed. Local output static_analysis_semgrep_4; clones removed. No metrics/Pro/cloud/CI/autofix. npm audit0 advisories.
+-Prior real-history/property/load evidence remains applicable to unchanged core modules. Actual account-backed CLI acceptance was from the previous phase; it was not rerun for UI-only changes.
+-Bounded read-only review found no material issue. Native chooser responses are mocked to keep tests hidden. No unfamiliar-user study, manual VoiceOver or human Finder installation is claimed.
 
-## Artifacts and privacy
-Signed unnotarized archives: `.local/signed-candidate/Codex Session Lens-1.1.0-arm64.dmg` and `.local/signed-candidate/Codex Session Lens-1.1.0-arm64-mac.zip`. Exact hashes/sizes and sanitized counts: docs/readiness-evidence.json. Native signed staging app is in OS temporary `codex-session-lens-release/mac-arm64`; extract retained ZIP into a fresh temp directory if that staging directory expires.
+## Final artifacts
+Apple app submission95e7f254-ade1-48c9-94c1-52e56e1478f0:Accepted, issues:null.
+Apple DMG submission21ca9921-f378-41dd-af5c-a60130233632:Accepted, issues:null.
+Developer ID Ethan Tarnarider, TeamZ2SL92S4B6; hardened runtime with only allow-jit. App stapled before ZIP recreation and DMG generation. DMG signed/notarized/stapled. Gatekeeper and tickets pass, including downloaded quarantined DMG/app and ZIP-extracted app.
 
-The first signing attempt failed because synced Documents introduced FinderInfo metadata. Its incomplete bundle is preserved separately in `.local/signing-failed-synced-folder`. Current release config stages outside synced folders. Unexpected old duplicate files with ` 2` suffix were preserved intact in `.local/preserved-duplicates-2026-10-22` and excluded from compiler/test inputs.
+Final archives: .local/notarized-release; downloaded copies: .local/downloaded-release.
+ZIP SHA256:815dd4af2cf4473684bbd7f004f3dff3b13f766990aeb30ceeb7096daf8b0a0f
+DMG SHA256:111cd37460b5810e50df4fed19e8baa714cabf94ee99495e4b355a8f72bb3d56
+app.asar SHA256:828448ce0e2aa635301b305ec9f0522f00ecbcbbc3aeb3ecfed2b2cb8c071e79
+GitHub replaces filename spaces with periods; SHA256SUMS.txt matches actual asset names. Old .local/signed-candidate archives are historical, not this release.
 
-Private full-history JSON and metadata/comparison details stay in ignored `.local/*private.json` with0600 permissions. Never publish them, traces, raw rollouts or account/source identifiers. Only sanitized aggregate evidence belongs in docs.
+Credentials stay in local Keychain profile ethan-notary. No secret belongs in chat/repository. Native signing stages outside synced Documents under OS temp codex-session-lens-release.
 
-## Cleanup and non-disruption
-Both bounded_ingestion and ui_qualification are complete and interrupted. All known scanner/build/test jobs completed. Process inspection found no Session Lens, Playwright, benchmark or Semgrep process from this work. The final computer-use dialog check unexpectedly launched the local candidate normally; it was immediately quit and process absence verified. No error dialog remained. This incidental check was not a hidden test and is disclosed. The installed app bundle was not replaced; all qualification tests used isolated data.
+## Publication checkpoint
+All acceptance gates passed. Verify Actions disabled, push final evidence, ready/merge PR4, point the prepared draft release to its merge commit, then publish. Fetch public assets without authentication and compare hashes; record the result in release notes. If already published and hashes match, these steps are complete. Never rebuild or retag different binaries silently.
 
-## Resume only for the deferred distribution step
-1. Keep GitHub Actions disabled. Verify before any push, PR, tag or release. No workflows, hooks, global settings or config.toml changes.
-2. Obtain a saved notarytool Keychain profile name after Ethan sets up credentials locally or identifies an existing profile. Never request secrets in chat. Do not infer authorization to create credentials from this handoff.
-3. Use retained exact signed candidate or rebuild only if source changes. Submit to Apple, inspect acceptance/log, staple app/DMG, recreate ZIP after app stapling, validate Gatekeeper and recheck read-only DMG installation. Record final post-staple hashes.
-4. Publish only after remaining gates pass. The draft PR is not a production-readiness assertion. Update matrix/handoff/evidence accurately.
+## Cleanup and safeguards
+Both Luna High assistants completed and were interrupted. Neither spawned agents. Test processes exited; clean checkout and temporary installed app/ZIP trees were removed; DMG ejected. The normal1.0.1 app was not replaced or closed. README images are synthetic, with verified PNG Author=Ethan; package/copyright/commit identity also Ethan. ZIP/DMG have no portable personal-author field.
 
-## Usage safeguard
-On explicit resume, run the supported usage checker at least every60seconds. Stop if ANY applicable window reaches90%used/10%remaining; stop owned workers/processes, save state, explicitly pause goal, terminate checker and wait. Missing readings are unknown. No credit/reset/provider bypass. The current checker cell2 is to be terminated when this deferred-work handoff is finished.
-
-Historical1.0.1/1.0.0 evidence remains in docs/patch-audit.md and patch-*.json. It is not substituted for the current results above. Original supported limits remain: local single-user Apple Silicon/macOS27.2, uncompressed JSONL, manual session selection, last-request context estimates, explicit source ambiguity. See CONSTRAINTS.md, operations.md, release-qualification.md and production-readiness.md.
+Actions disabled,0runs. No hooks/global config/config.toml edits. Private histories/traces/scans stay ignored. Guard cell12 checks every55seconds; last72%used. At90%used in any window stop owned work, save state and pause without auto-resume. After successful publication terminate checker and complete existing goal. It still carries the earlier paused status; no duplicate goal was created.

@@ -1,28 +1,28 @@
 # Production readiness
 Author: Ethan
-Candidate:1.1.0. Usability phase active; final release qualification in progress. Not yet published.
+Qualified release:1.1.0. All supported-platform release gates passed. Publication is the final release action; the release page and its notes record live delivery status.
 
-The earlier notarization deferral has been lifted. The revised signed app passed40 hidden tests and50 Node tests; a clean frozen install passed49 tests before one test-only regression was added, and all6 emitted files matched. Apple accepted app submission95e7f254-ade1-48c9-94c1-52e56e1478f0 with no issues. Final stapling, DMG/downloaded installation and publication are pending. The matrix below records the prior phase until final evidence replaces the distribution rows.
+The revised app passed50 Node tests,40 hidden signed-package checks and40 checks from the downloaded DMG installation. Clean frozen install passed50 Node tests and produced6 byte-identical output files. Apple accepted both app and DMG submissions with no reported issues. App/DMG tickets and Gatekeeper passed, including the downloaded quarantined artifacts. See release-qualification.md and readiness-evidence.json for exact post-staple hashes and boundaries.
 Baseline:399d77dcc83da42baaa87b70b90a6e14088af939 / released1.0.1
 
 ## Readiness matrix
 | Area | Current proof | Remaining gate or limit |
 | --- | --- | --- |
 | Supported boundary | Local, single-user, offline Apple Silicon/macOS27.2; read-only uncompressed JSONL | Windows/Linux/Intel/remote/compressed sources unqualified; manual session selection |
-| Quiet developer workflow | Pure Node CLI and46 Node checks; Electron excluded from npm test | GUI changes use separate hidden packaged gate |
+| Quiet developer workflow | Pure Node CLI and50 Node checks; Electron excluded from npm test | GUI changes use separate hidden packaged gate |
 | Accounting/replay/isolation | Independent generated oracle, equal-time ambiguity, cumulative snapshots, replay/restart, real CLI acceptance | Fork repair verified on48 real child files:45 exact direct totals,3 explicit conflicts,0 unexplained mismatches |
 | Resource use | Batches128, projection yields256, SQLite cache budgets, stable file handles, cancellation rollback | Outputs/compaction lists scale with history; no universal constant-memory claim |
 | Load/soak |50k final synthetic723.73ms/+36.23MiBRSS/12.13ms maxlag;138file3.2GB shape27.87s/+75.47MiB;120s append soak | Shape has sparse telemetry. Final real3.26GB scan61.36s/414MiB peakRSS;39 oversized records in15 files disclosed |
 | Storage/recovery | Corrupt cache retained until explicit backup/rebuild; real lock, denied filesystem access, SQLite quota-full, cancellation, queued close and retry | SQLite quota is deterministic full-disk behavior, not a physically exhausted system volume |
 | Upgrade/rollback | Actual installed1.0.1 generated cache upgraded to1.1.0, rolled back and upgraded again; saved settings and removed-source history preserved | Historical visible1.0.0 migration evidence retained; no disruptive rerun |
 | Privacy/IPC/security | Trusted sender/frame check, sandbox/context isolation/CSP/deny network and permissions; hidden privacy tests; bounded allowlisted diagnostics | No claim of a full upstream Electron/SQLite audit |
-| Static analysis | Approved11packs refreshed;7 inspected heuristic findings; no confirmed exploit in findings |15 rule parse errors, partial renderer parsing, Community single-file and per-pack coverage limits disclosed |
+| Static analysis | Approved11packs refreshed;8 inspected heuristic findings; no confirmed exploit in findings |15 rule parse errors, partial renderer parsing, Community single-file and per-pack coverage limits disclosed |
 | Dependencies/licenses | Clean frozen install; automatic lifecycle scripts off; audited explicit Electron installer; npm audit0; registry signatures valid with npm11 auditor; runtime notices included | npm10 signature-key failure documented; audit is a dated snapshot |
-| UI/onboarding/accessibility | Final signed37/37 including upgrade and3 operational tests; fresh/sample/skip/replay/recovery; axe positive control and zero serious/critical; theme/200%zoom; accessible tree and keyboard traversal | Manual VoiceOver listening/exhaustive hands-on review not claimed |
+| UI/onboarding/accessibility | Final signed40/40 including upgrade, operational tests and3 chooser/alias tests; fresh/sample/skip/replay/recovery; axe positive control and zero serious/critical; theme/200%zoom; accessible tree and keyboard traversal | Manual VoiceOver listening/exhaustive hands-on review not claimed |
 | Real integration | CodexCLI0.163.0 real Luna turn matched15130 input/10output/0cached through restart/overlap; desktop presence/manual selection checked | Does not establish foreground automatic switching; fork-history recheck passed with size/conflict limits |
 | Diagnostics/support |100 records/64KiB, fixed categories, opaque runIDs; fatal private sentinel absent; operations and backup/reset docs | Local diagnostics only, no automatic report/upload |
-| Build/distribution | Clean install46 Node checks and build passed after fork repair; all6 emitted files byte-identical; signed hardened-runtime package verified | Temp staging fixed synced-folder metadata signing failure. Signed DMG installation5/5 passed. Notarization credentials unavailable in inspected locations; deferred by Ethan |
-| Release | Reviewable candidate branch; no tag/release or Actions/config/hooks changes | Notarization, stapling and final Gatekeeper checks remain required before production publication |
+| Build/distribution | Clean install50 Node checks and build passed; all6 emitted files byte-identical; signed hardened-runtime package verified | Downloaded DMG installation40/40 passed; app and DMG notarized/stapled and Gatekeeper accepted; ZIP recreated after app staple |
+| Release | Reviewable PR4, qualified release artifacts; Actions disabled with0runs; no config/hooks changes | Final public asset delivery verified after publication; see release notes |
 
 ## Actual skill use
 All named skills were loaded from the explicitly invoked project-local installation. Scope below records actual work rather than asserting that every generic checklist item applies to an offline utility.
@@ -53,8 +53,13 @@ All named skills were loaded from the explicitly invoked project-local installat
 | vercel-react-best-practices | Installed React19 guidance/effect/rerender scope; small state/API additions | renderer build and interactions; no Next.js assumptions |
 | vercel-composition-patterns | Inspected boolean-prop/compound-component scope; no complexity requiring a new provider/library | Deliberately retained existing small renderer structure |
 | code-simplification | Inspected scope; removed duplicated app policy into shared service only where CLI/queue/recovery required it | No unrelated rewrite; outputs/errors/order guarded by tests |
-| shipping-and-launch | Local packaging/identity/notarization/install/update/rollback/licenses/support checklist; hosted-service items inapplicable | release-qualification.md; no production publication yet |
+| shipping-and-launch | Local packaging/identity/notarization/install/update/rollback/licenses/support checklist; hosted-service items inapplicable | release-qualification.md; all qualification gates passed; public delivery is the final step |
 | verification-before-completion | Read completion gate; current commands separated from historical release and external blockers | This matrix, local reports and final artifact hashes when available |
 
 ## Evidence classes
 Synthetic fault/property tests establish deterministic boundaries, not live provider behavior. The real CLI test is an actual account-backed turn. The read-only full-history scan is actual local data, reported only as counts/timing/categories. Hidden renderer tests inspect the real packaged app but do not establish a manual VoiceOver experience. Signing, notarization and Gatekeeper installation each require separate results. Historical1.0.1/1.0.0 evidence never substitutes for checks of this candidate.
+
+## Usability and distribution phase
+The explicitly requested shipping-and-launch, api-and-interface-design, impeccable, baseline-ui, fixing-accessibility, systematic-debugging and verification-before-completion skills were reloaded. They guided the narrow chooser/alias contracts, compact default, optional path/detail controls, rendered light/dark review and final distribution gates. The native dialog returns a draft selection; only Save persists it. Aliases never alter source identity. A real transient theme contrast defect was isolated to an inherited button color transition and fixed by removing that transition; the failing axe test then passed. A prototype-like ID test first exposed Playwright's object-transfer behavior, not an app defect; renderer-realm and SQLite checks prove all three labels persist without identity loss.
+
+Rendered sample/setup/populated/empty/recovery, themes, keyboard/AX and200%zoom were checked. The manual design detector found no regex violations; this is not a claim of parsed-page coverage. README images were refreshed from the final hidden app using synthetic fixtures and verified PNG Author=Ethan metadata. The parent reviewed the implementation, and a bounded read-only review found no material issue. No unfamiliar-user study, manual native chooser interaction or manual VoiceOver listening is claimed.
