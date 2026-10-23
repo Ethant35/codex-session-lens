@@ -5,25 +5,25 @@ A local-first macOS companion HUD for individual Codex sessions. It keeps cumula
 
 ## Install
 
-This source branch contains candidate1.1.0, including the setup, recovery and CLI features below. It has passed local signed-package checks, but notarization is deferred and1.1.0 is not published. The existing1.0.1 release uses the earlier interface. See [current qualification](docs/production-readiness.md).
+The published 1.0.1 release uses the earlier interface. This branch contains candidate 1.1.0; it is still under final distribution qualification and is not published. Download only a version listed on the repository's [Releases](https://github.com/Ethant35/codex-session-lens/releases) page. The new folder chooser, local aliases and compact-by-default interface described below apply to 1.1.0 after it is released. See [current qualification](docs/production-readiness.md).
 
-Download the Apple Silicon DMG from [Releases](https://github.com/Ethant35/codex-session-lens/releases), open it and drag **Codex Session Lens** into Applications. Open the app, confirm your session folders in the short setup screen, then choose a session by ID or model. Setup can be skipped or replayed from Settings. The labeled sample uses synthetic values and never enters stored history. The development release is unsigned and not notarized. If macOS blocks it, review the source and use System Settings → Privacy & Security → Open Anyway for this app. Do not disable system security protections.
+For a released 1.1.0 build, download its Apple Silicon DMG from [Releases](https://github.com/Ethant35/codex-session-lens/releases), open it and drag **Codex Session Lens** into Applications. Open the app and review the suggested Codex session folders. Keep them, add folders with the native chooser, or skip setup and change this later in Settings. Scan, choose a session, then optionally give it a private local name. The sample is synthetic and stays separate from real sessions. See the [first-use, update and recovery guide](docs/usability-release.md). Do not bypass a macOS security warning; stop and check that you downloaded the current release from this repository. The 1.1.0 candidate remains unpublished until the final build passes signing, notarization, stapling, Gatekeeper and installation checks.
 
 Requires Apple Silicon and a macOS version supported by Electron 45. Validated on macOS 27.2; older macOS releases have not been tested. The acceptance environment is recorded in ACCEPTANCE.md. No account, backend, API key or network access is required by the HUD.
 
 ## Use
 
-- Search and select a session manually; Cmd+K focuses search. Selection is saved and never changed just because another session becomes active.
+- Search and select a session manually; Cmd+K focuses search. Selection is saved and never changed just because another session becomes active. A name you assign is a private local alias for that observed session ID, not a title read from its prompts. If there is no alias, identify sessions by model, date or ID.
 - Read cumulative input/output and cached input (a subset of input), with latest-request usage shown separately.
 - Context is explicitly a last-request estimate when a complete sample and limit exist. Current effective occupancy is unavailable. Cumulative tokens are never used as context occupancy.
 - Expand compaction history and distinguishable child activity. Child metrics stay separate.
-- Settings controls system/light/dark theme, always-on-top, source directories, pause/resume, diagnostics and clear history. Compact reduces spacing and hides the latest-request detail strip. Resize and move the window; bounds persist.
+- The HUD opens compact. Expand it when you need latest-request details, provenance, or compaction history. Settings controls theme, always-on-top, source folders, pause/resume, diagnostics, setup replay and Clear telemetry. Window size and position persist.
 
 ## Telemetry sources and limits
 
 The app discovers uncompressed `.jsonl` files in `$CODEX_HOME/sessions` and `$CODEX_HOME/archived_sessions` (default `~/.codex`), or directories you set. It reads `session_meta`, `turn_context`, cumulative `token_count` / `token_usage_record`, compaction and task-status events. [ARCHITECTURE.md](ARCHITECTURE.md) documents fields, provenance and exact accounting rules. Forked subagent files use their explicit ordinal boundary to exclude inherited parent context. Records above8MiB are skipped with a diagnostic. Compressed archives, remote-only sessions and undocumented event formats are unsupported. It preserves previously ingested history if a source disappears. Version 1.0.1 makes projection independent of file discovery order and restart boundaries. Conflicting equal-time records are shown as unavailable with a warning. An upgraded v1 cache retains known history and discloses any coverage uncertainty.
 
-**Automatic switching to the selected native Codex conversation is unsupported.** The app uses a first-class manual selector. Activity sorting does not identify the foreground conversation. It does not use Accessibility, inject into Codex, or modify Codex. Search uses session ID and model; prompt-derived titles are deliberately not imported.
+**Automatic switching to the selected native Codex conversation is unsupported.** The app uses a manual selector. Activity sorting does not identify the foreground conversation. It does not use Accessibility, inject into Codex, or modify Codex. It does not import prompt-derived titles or invent session identities. Aliases are stored in the local cache with the selected IDs; clearing or rebuilding that cache removes them. A retained cache backup preserves its prior aliases.
 
 Status means last observed status, not a guarantee that a process remains active. Unknown child identity is unavailable. Source changes can make metrics incomplete; diagnostics and warnings expose known problems. All telemetry stays local; see [SECURITY.md](SECURITY.md).
 

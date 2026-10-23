@@ -22,6 +22,8 @@ test('SL-01: clean launch shows empty state and usable settings', async () => {
     await preferences(run.page);
     await expect(run.page.getByRole('region', { name: 'Settings and diagnostics' })).toBeVisible();
     await expect(run.page.getByLabel('Theme')).toHaveValue('system');
+    await run.page.getByText('About selection and updates', { exact: true }).click();
+    await expect(run.page.getByText(/Selection is manual\. Session Lens cannot identify your foreground Codex chat\./)).toBeVisible();
     await run.page.getByLabel('Theme').selectOption('light');
     await expect(run.page.locator('.app-shell')).toHaveAttribute('data-theme', 'light');
   } finally { await closeLens(run); }
@@ -81,6 +83,7 @@ test('SL-05: cumulative token_count and overlapping usage records are not added 
     await appendTokenCount(file, 'overlap-session', { ...counts, event: 'token_usage_record', timestamp: t(2) });
     await run.page.getByRole('button', { name: 'Rescan sessions' }).click();
     await select(run.page, 'overlap-session');
+    await run.page.getByRole('button', { name: 'Expand display', exact: true }).click();
     await expect(totalInput(run.page)).toHaveText('1,200');
     await expect(run.page.getByTestId('total-output')).toHaveText('300');
     await expect(run.page.getByTestId('total-cached')).toHaveText('500');
@@ -174,7 +177,7 @@ test('SL-09: preferences, selected session, recent history, and window bounds pe
     await run.page.getByLabel('Theme').selectOption('dark');
     await run.page.getByLabel('Always on top').click();
     await expect(run.page.getByLabel('Always on top')).toBeChecked();
-    await run.page.getByRole('button', { name: 'Compact display' }).click();
+    expect((await run.page.evaluate(() => window.lens.snapshot())).preferences.compact).toBe(true);
     await expect(run.page.locator('.app-shell')).toHaveAttribute('data-compact', 'true');
     await run.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setBounds({ x: 40, y: 50, width: 520, height: 700 }));
     await closeLens(run, false);
@@ -240,6 +243,7 @@ test('SL-13: packaged Apple Silicon app launches and supports navigation, direct
     await appendTokenCount(file, 'packaged-session', { total: { input: 654, output: 98, cached: 234 }, latest: { input: 333, output: 33, cached: 111 }, timestamp: t(2) });
     await expect(run.page.getByTestId('total-input')).toHaveText('654', { timeout: 5_000 });
     await preferences(run.page);
+    await run.page.getByText('Enter paths manually', { exact: true }).click();
     await expect(run.page.getByLabel('Session directories')).toHaveValue(run.source);
     await run.page.getByLabel('Session directories').fill(run.source);
     await run.page.getByRole('button', { name: 'Save directories' }).click();

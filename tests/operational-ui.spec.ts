@@ -10,14 +10,15 @@ test('failed preference writes stay visible and retry after a real SQLite lock c
   const run = await launchLens();
   const lock = new DatabaseSync(join(run.data, 'telemetry.sqlite'));
   try {
-    lock.exec('BEGIN EXCLUSIVE');
-    await run.page.getByRole('button', { name: 'Compact display', exact: true }).click();
-    await expect(run.page.getByRole('alert')).toContainText('Could not save this change');
-    expect((await run.page.evaluate(() => window.lens.snapshot())).preferences.compact).toBe(false);
-    lock.exec('ROLLBACK');
-    await run.page.getByRole('button', { name: 'Compact display', exact: true }).click();
-    await expect(run.page.getByRole('alert')).toBeHidden();
     expect((await run.page.evaluate(() => window.lens.snapshot())).preferences.compact).toBe(true);
+    lock.exec('BEGIN EXCLUSIVE');
+    await run.page.getByRole('button', { name: 'Expand display', exact: true }).click();
+    await expect(run.page.getByRole('alert')).toContainText('Could not save this change');
+    expect((await run.page.evaluate(() => window.lens.snapshot())).preferences.compact).toBe(true);
+    lock.exec('ROLLBACK');
+    await run.page.getByRole('button', { name: 'Expand display', exact: true }).click();
+    await expect(run.page.getByRole('alert')).toBeHidden();
+    expect((await run.page.evaluate(() => window.lens.snapshot())).preferences.compact).toBe(false);
   } finally { if (lock.isTransaction) lock.exec('ROLLBACK'); lock.close(); await run.close(); }
 });
 
@@ -43,9 +44,11 @@ test('unfinished setup survives restart and keyboard actions expose named access
   try {
     run = await launchLens(source, data, { fresh: true });
     await expect(run.page.getByRole('region', { name: 'Getting started' })).toBeVisible();
+    await run.page.getByRole('region', { name: 'Getting started' }).getByText('Enter paths manually', { exact: true }).click();
     await run.close();
     run = await launchLens(source, data, { fresh: true });
     await expect(run.page.getByRole('region', { name: 'Getting started' })).toBeVisible();
+    await run.page.getByRole('region', { name: 'Getting started' }).getByText('Enter paths manually', { exact: true }).click();
     const cdp = await run.page.context().newCDPSession(run.page);
     try {
       await cdp.send('Accessibility.enable');
@@ -57,7 +60,7 @@ test('unfinished setup survives restart and keyboard actions expose named access
     } finally { await cdp.detach(); }
     // Traverse actual tab order, then activate with the keyboard rather than clicking.
     let reached = false;
-    for (let step = 0; step < 15; step++) {
+    for (let step = 0; step < 30; step++) {
       await run.page.keyboard.press('Tab');
       if (await run.page.getByRole('button', { name: 'Skip setup', exact: true }).evaluate(node => node === document.activeElement)) { reached = true; break; }
     }

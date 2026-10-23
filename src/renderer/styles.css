@@ -41,7 +41,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .connection { display: inline-flex; align-items: center; gap: 5px; margin-top: 3px; color: var(--muted); font-size: 11px; }
 .connection i { width: 5px; height: 5px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 3px var(--teal-soft); }
 .top-actions { display: flex; gap: 7px; align-items: center; margin-left: auto; }
-.quiet-button, .icon-button, .primary-button, .danger-button { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); padding: 8px 11px; font-size: 11px; font-weight: 650; cursor: pointer; transition: border-color .15s, background-color .15s, transform .15s; }
+.quiet-button, .icon-button, .primary-button, .danger-button { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); padding: 8px 11px; font-size: 11px; font-weight: 650; cursor: pointer; transition: none; }
 .quiet-button:hover, .icon-button:hover { border-color: var(--line-strong); background: var(--panel-soft); }
 .icon-button { color: var(--teal-dark); display: inline-flex; align-items: center; gap: 5px; }
 .icon-button:first-letter { font-size: 15px; }
@@ -195,8 +195,7 @@ button:disabled { opacity: .6; cursor: wait; }
 .app-shell[data-compact="true"] .session-heading h1 { font-size: 14px; }
 .app-shell[data-compact="true"] .support-note { font-size: 10px; margin: 5px 0; }
 .app-shell[data-compact="true"] .summary-head { gap: 8px; padding-bottom: 8px; }
-.app-shell[data-compact="true"] .summary-card > .provenance,
-.app-shell[data-compact="true"] .latest-strip { display: none; }
+
 .app-shell[data-compact="true"] .context-area { margin-top: 8px; padding-top: 8px; }
 .app-shell[data-compact="true"] .context-note { margin-bottom: 0; }
 .app-shell[data-compact="true"] .detail-card summary { padding: 10px; }
@@ -293,3 +292,37 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   .diagnostics-head { flex-wrap: wrap; }
   .diagnostics-head > span { flex: 1 1 100%; }
 }
+
+/* Task-focused refinements: one compact HUD, native selection, optional details. */
+.brand-name { margin: 0; font-size: 13px; font-weight: 700; }
+.app-shell { transition: none; }
+.session-bar, .summary-card, .settings-card { box-shadow: none; }
+.eyebrow, .section-label { letter-spacing: normal; font-size: 12px; }
+h1, h2, h3 { text-wrap: balance; }
+p { text-wrap: pretty; }
+::selection { background: var(--teal-soft); color: var(--text); }
+input, textarea { caret-color: var(--teal-dark); }
+.folder-list { margin: 8px 0 12px; padding: 0; list-style: none; }
+.folder-list li { padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 13px; overflow-wrap: anywhere; }
+.manual-paths, .local-name, .request-details, .help-details { margin-top: 12px; font-size: 14px; }
+.manual-paths summary, .local-name summary, .request-details summary, .help-details summary { cursor: pointer; color: var(--teal-dark); min-height: 32px; }
+.manual-paths .field, .local-name form { margin-top: 8px; }
+.local-name input { width: 100%; border: 1px solid var(--line-strong); background: var(--panel-soft); color: var(--text); border-radius: 7px; padding: 8px; }
+.local-name p { margin: 7px 0; }
+.saved-name { margin-inline-start: 10px; color: var(--teal-dark); }
+.folders-title { margin: 16px 0 0; font-size: 15px; }
+.totals-label { font-size: 13px; color: var(--muted); margin: 14px 0 0; }
+.metrics-grid { padding-top: 8px; }
+.metric { background: transparent; padding: 5px 0; }
+.metric strong { overflow-wrap: anywhere; }
+.session-heading h1 { overflow-wrap: anywhere; }
+.app-shell[data-compact="true"] .session-heading h1 { font-size: 18px; }
+.app-shell[data-compact="true"] .metrics-grid { padding: 6px 0; }
+.app-shell[data-compact="true"] .metric { padding: 5px 0; }
+.app-shell[data-compact="true"] .metric strong { font-size: 20px; }
+.summary-head { gap: 8px; }
+.identity-text h2 { font-size: 12px; font-weight: 400; }
+.context-heading p { font-size: 13px; }
+.request-details .latest-strip { display: flex; }
+.help-details p { margin: 8px 0; overflow-wrap: anywhere; }
+button, input, textarea, select { max-width: 100%; }

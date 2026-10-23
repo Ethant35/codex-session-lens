@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, session, screen, Menu } from 'electron';
+import { app, BrowserWindow, ipcMain, session, screen, Menu, dialog } from 'electron';
 import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { pathToFileURL } from 'node:url';
@@ -76,6 +76,20 @@ app.whenReady().then(async () => {
     try { return await action(...args); } catch (error) { diagnostics?.record('operation_failed', error); throw new Error('Local operation failed. Check settings and directory access.'); }
   });
   handle('lens:snapshot',snapshot);
+  let choosingDirectories = false;
+  handle('lens:choose-directories', async () => {
+    if (!win || choosingDirectories || closing) return null;
+    choosingDirectories = true;
+    try {
+      const result = await dialog.showOpenDialog(win, {
+        title: 'Choose Codex session folders', buttonLabel: 'Use folders',
+        defaultPath: codexHome, properties: ['openDirectory', 'multiSelections', 'showHiddenFiles'],
+        message: 'Choose folders containing Codex JSONL sessions. Source files stay read-only.',
+      });
+      return result.canceled ? null : result.filePaths;
+    } finally { choosingDirectories = false; }
+  });
+  handle('lens:alias', async (id: unknown, label: unknown) => { await lens.alias(id, label); return snapshot(); });
   handle('lens:recover',async (action: unknown) => { await lens.recover(action); diagnostics?.record(lens.snapshot().recovery ? 'cache_unavailable' : 'cache_recovered'); return snapshot(); });
   handle('lens:select',async (id: unknown) => { await lens.select(id); return snapshot(); });
   handle('lens:preferences',async (value: unknown) => {

@@ -19,9 +19,17 @@ function patch(value: unknown): Partial<Preferences> {
   return structuredClone(value) as Partial<Preferences>;
 }
 
+function aliases(value: unknown): Record<string, string> {
+  if (value === undefined) return {};
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid aliases');
+  const entries = Object.entries(value);
+  if (entries.length > 1000 || entries.some(([id, label]) => !/^[a-zA-Z0-9_-]{1,128}$/.test(id) ||
+    typeof label !== 'string' || label.length > 80 || !label.trim() || /[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/u.test(label))) throw new Error('Invalid aliases');
+  return Object.fromEntries(entries);
+}
 function preferences(saved: unknown, directories: string[]): Preferences {
-  const defaults: Preferences = { theme: 'system', compact: false, alwaysOnTop: false,
-    directories, selectedId: null, recentIds: [], paused: false, onboardingCompleted: false, sampleMode: false };
+  const defaults: Preferences = { theme: 'system', compact: true, alwaysOnTop: false,
+    directories, selectedId: null, recentIds: [], paused: false, onboardingCompleted: false, sampleMode: false, aliases: {} };
   if (saved === null) return defaults;
   if (!saved || typeof saved !== 'object' || Array.isArray(saved)) throw new Error('Invalid saved preferences');
   const v = saved as Record<string, unknown>;
@@ -30,7 +38,7 @@ function preferences(saved: unknown, directories: string[]): Preferences {
   if (v.selectedId != null && !id(v.selectedId)) throw new Error('Invalid saved selection');
   if (v.recentIds !== undefined && (!Array.isArray(v.recentIds) || v.recentIds.length > 10 || !v.recentIds.every(id))) throw new Error('Invalid saved selections');
   return { ...defaults, ...validated, onboardingCompleted: validated.onboardingCompleted ?? true,
-    selectedId: (v.selectedId as string | null) ?? null, recentIds: (v.recentIds as string[]) ?? [] };
+    aliases: aliases(v.aliases), selectedId: (v.selectedId as string | null) ?? null, recentIds: (v.recentIds as string[]) ?? [] };
 }
 
 const sample: Session = {
@@ -100,9 +108,20 @@ export class LensService {
       this.store.set('preferences', next); this.prefs = next;
     });
   }
+  alias(id: unknown, label: unknown): Promise<Snapshot> {
+    if (typeof label !== 'string' || label.length > 80 || /[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/u.test(label)) return Promise.reject(new Error('Invalid alias'));
+    const clean = label.trim();
+    return this.enqueue(() => {
+      if (this.prefs.sampleMode || typeof id !== 'string' || !this.ingestor.sessions.has(id)) throw new Error('Unknown session');
+      const entries = Object.entries(this.prefs.aliases ?? {}).filter(([key]) => key !== id);
+      if (clean) entries.push([id, clean]);
+      const next = { ...this.prefs, aliases: aliases(Object.fromEntries(entries)) };
+      this.store.set('preferences', next); this.prefs = next;
+    });
+  }
   clear(): Promise<Snapshot> {
     return this.enqueue(() => {
-      const next = { ...this.prefs, paused: true, selectedId: null, recentIds: [], sampleMode: false };
+      const next = { ...this.prefs, paused: true, selectedId: null, recentIds: [], sampleMode: false, aliases: {} };
       this.store.clear(next); this.prefs = next; this.ingestor.reset();
     });
   }

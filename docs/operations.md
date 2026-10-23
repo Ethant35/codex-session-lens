@@ -1,37 +1,48 @@
 # Operations and recovery
 Author: Ethan
 
-## First use
-Install the Apple Silicon package, then open Session Lens. Setup shows the source folders and the local-only data boundary. Use your folders, skip setup with the displayed defaults, or select the clearly labeled synthetic sample. Settings can replay setup. No login, API key, Accessibility permission or network service is required. The source folder must contain readable, uncompressed Codex JSONL files.
+## First use and return use
 
-Choose a session by ID or model. The app preserves that manual selection. Activity order does not reveal which conversation is selected in Codex. Context is a last-request estimate; a missing or invalid source value stays unavailable.
+Download a published Apple Silicon DMG from the repository's [Releases](https://github.com/Ethant35/codex-session-lens/releases) page. Open it, drag **Codex Session Lens** into Applications, eject the disk image, then open the app. Do not bypass a macOS security warning. Check the release page and stop if the warning says the app cannot be verified or is damaged.
+
+On first launch, review the suggested Codex session folders. Keep them, add folders with the native chooser, or skip setup and set folders later in Settings. Save the folders and scan. Select a session from the results. The selector is manual: recent activity does not show which conversation is currently foreground in Codex.
+
+You can assign a private local alias to a selected session after the app has observed its stable ID. The alias labels that ID; it does not come from prompt text and does not create a session. Without an alias, use the model, date and ID shown in the selector to recognize a session. Your selection and aliases persist with local preferences/cache. If you use Clear telemetry or rebuild the cache, the app will scan available sources again and aliases are lost; a retained cache backup keeps the earlier aliases. Setup can be replayed from Settings without reinstalling.
+
+The HUD starts compact. Expand it for latest-request details and metric provenance. Cumulative input/output token counts come from observed Codex snapshots. Cached input is a subset of input. A context value, when available, is an estimate from the last request; it is not current context occupancy. Values that lack sufficient source data or have conflicting observations remain unavailable. Manual mode cannot follow the foreground Codex conversation automatically.
+
+The optional sample is synthetic, visibly labeled, and kept separate from session folders and telemetry. Return to real sessions by leaving sample mode and scanning the selected folders.
+
+## Folder and scan problems
+
+Use the folder chooser to select a local directory that contains readable, uncompressed Codex `.jsonl` session files. Review the selected folder list before saving. Session Lens reads source files without changing them. If a folder is unavailable or unreadable, correct its location or permissions in Settings and rescan. Compressed archives, remote-only sessions and undocumented event formats are unsupported. Oversized records are skipped with a diagnostic.
+
+If a scan cannot be saved, earlier committed history stays available. Fix the storage problem and rescan. Failed or cancelled scans do not publish partial telemetry. If diagnostics report invalid stored telemetry, retain a backup as below, then use Clear telemetry to reimport readable source files.
 
 ## Cache unavailable
-Retry after closing other app copies, freeing disk space or restoring folder access. A locked or inaccessible cache is never automatically replaced. For known damaged data, the app offers a separate backup-and-rebuild confirmation. It rechecks the cache before moving it. Rebuild retains the failed SQLite database and regular sidecars in a private sibling `cache-backup-*` directory, then starts fresh setup. Source logs remain untouched. History absent from the source files can be recovered only from the retained cache/backup.
 
-If a scan cannot be saved, prior committed history stays available. Correct the storage problem and rescan. Failed or cancelled scans do not publish partial telemetry. If diagnostics report invalid stored telemetry, quit, retain a backup as below, then use Clear telemetry to reimport readable source files.
+Retry after closing other app copies, freeing disk space or restoring folder access. A locked or inaccessible cache is never automatically replaced. For known damaged data, the app offers a separate backup-and-rebuild confirmation. It rechecks the cache before moving it. Rebuild retains the failed SQLite database and regular sidecars in a private sibling `cache-backup-*` directory, then starts fresh setup. Source logs remain untouched. History absent from source files can be recovered only from the retained cache or backup.
 
-## Backup, restore and update
-Quit Session Lens before copying its data. The default folder is `~/Library/Application Support/codex-session-lens`; an explicitly set `LENS_DATA_DIR` overrides it. Copy the whole folder to a private backup location. Treat it as private data: it includes session identifiers, telemetry, configured directories and selections. It is not encrypted by the application.
+## Backup, update and rollback
 
-Before updating, retain the prior app and a closed-cache backup. Replace the app only after quitting it. Start the new version and check the selected session, settings and diagnostics. To roll back, quit the new app, retain its data separately, restore the prior app, and restore the closed-cache backup if the release notes require it. Never overwrite an open database or mix a database with unrelated journal/WAL sidecars. The current hidden upgrade test uses an actual v1.0.1-created cache; see readiness evidence for the executed result. Historical v1.0.0 migration evidence is separate.
+Quit Session Lens before copying its data. The default folder is `~/Library/Application Support/codex-session-lens`; an explicitly set `LENS_DATA_DIR` overrides it. Copy the whole folder to a private backup location. Treat it as private data: it includes session identifiers, telemetry, configured directories, selection and aliases. It is not encrypted by the application.
+
+The app has no automatic updater or network connection. To update, download the newer published DMG from the repository's Releases page, quit Session Lens, open the DMG and replace the app in Applications. Keep the data folder in place. On first launch after the update, confirm the selected session, folders, preferences and diagnostics. If you need to roll back, quit the newer app, keep a copy of its data, restore the prior app and restore a closed-cache backup if the release notes require it. Never overwrite an open database or mix a database with unrelated journal/WAL sidecars. The current 1.1.0 candidate passed an actual 1.0.1 cache upgrade/rollback/forward check; see [qualification status](production-readiness.md). This is local test evidence, not a substitute for final downloaded-release checks.
 
 ## Retention and deletion
-Settings → Clear telemetry removes observations, projections and deduplication keys and pauses ingestion. SQLite secure deletion overwrites deleted pages; the file retains allocated free space for reuse. Preferences and bounds remain. Clear does not delete source JSONL files or earlier `cache-backup-*` folders. Resume imports readable source files again.
 
-To remove all app data, quit the app and move its entire data folder to Trash. This removes preferences, diagnostics and recovery backups with it. Removing the app alone leaves data intact. Deleting the original Codex session logs is a separate decision; Session Lens never does that.
+Settings → Clear telemetry removes observations, projections, deduplication keys and local aliases, then pauses ingestion. SQLite secure deletion overwrites deleted pages; the file retains allocated free space for reuse. Preferences and bounds remain. Clear does not delete source JSONL files or earlier `cache-backup-*` folders. Resume imports readable source files again.
+
+To remove all app data, quit the app and move its entire data folder to Trash. This removes preferences, diagnostics and recovery backups with it. Removing the app alone leaves data intact. Deleting original Codex session logs is a separate decision; Session Lens never does that.
 
 ## Support diagnostics
-`diagnostics.json` in the data folder keeps the last100 allowlisted local support events, at most64KiB. It records event/time, a fixed error category, app version and an opaque run ID. It does not contain exception messages, raw stacks, source contents, session IDs or source paths. Repeated identical failures are coalesced; logging is best effort when storage fails. Nothing is automatically uploaded. The UI also reports scan errors and last-scan time.
+
+`diagnostics.json` in the data folder keeps the last 100 allowlisted local support events, at most 64 KiB. It records event/time, a fixed error category, app version and an opaque run ID. It does not contain exception messages, raw stacks, source contents, session IDs, aliases or source paths. Repeated identical failures are coalesced; logging is best effort when storage fails. Nothing is automatically uploaded. The UI also reports scan errors and last-scan time.
 
 For a bug report, provide app/macOS versions, the action, expected and actual behavior, and this sanitized diagnostics file if useful. Reproduce with synthetic fixtures when possible. Do not attach telemetry.sqlite, source logs, screenshots containing private session data, or Playwright traces from real-session tests to a public issue. Security reports should use the repository's private security channel when available.
 
 ## Quiet developer checks
-Run `npm test` for Node CLI, service, cache recovery, parser/property and diagnostic checks. It does not launch Electron. Packaged UI checks use `--background`, isolated temporary sources/data and automatic process cleanup. The test harness verifies no visible/focused/focusable window or Dock icon. Native SIGTERM and fatal-error tests also verify process exit. Do not enable visible-test flags on another person's desktop.
 
-## Diagnostic questions
-1. Did the process start, fail, or recover? Read started/fatal/cache event names and run IDs.
-2. Was the failure storage-related? Busy/full/permission/corrupt/io categories distinguish common causes without copying exception text.
-3. Is ingestion progressing? Read last-scan time, error messages and file counts in Settings; use the CLI on synthetic or explicitly selected sources for a repeatable check.
+Run `npm test` for Node CLI, service, cache recovery, parser/property and diagnostic checks. It does not launch Electron. Packaged UI checks use `--background`, isolated temporary sources/data and automatic process cleanup. The test harness verifies no visible/focused/focusable window or Dock icon. Native SIGTERM and fatal-error tests also verify process exit. Do not enable visible-test flags on another person's desktop.
 
 This offline single-process app has no distributed traces, remote log aggregator, account authentication, web server, production traffic rollout or cloud alerting. Those service-specific checklist items are inapplicable.

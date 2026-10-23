@@ -1,6 +1,8 @@
 # Production readiness
 Author: Ethan
-Candidate:1.1.0. Local qualification complete; notarization deferred by Ethan. Not published.
+Candidate:1.1.0. Usability phase active; final release qualification in progress. Not yet published.
+
+The earlier notarization deferral has been lifted. The revised signed app passed40 hidden tests and50 Node tests; a clean frozen install passed49 tests before one test-only regression was added, and all6 emitted files matched. Apple accepted app submission95e7f254-ade1-48c9-94c1-52e56e1478f0 with no issues. Final stapling, DMG/downloaded installation and publication are pending. The matrix below records the prior phase until final evidence replaces the distribution rows.
 Baseline:399d77dcc83da42baaa87b70b90a6e14088af939 / released1.0.1
 
 ## Readiness matrix

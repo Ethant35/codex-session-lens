@@ -2,7 +2,10 @@
 Author: Ethan
 Updated:2026-10-22, America/Los_Angeles
 
-## Current state
+## Active usability and distribution phase
+Authorized 2026-10-22: native folder chooser, private user-assigned aliases, compact default HUD, clearer setup/return flow, final signing/notarization and qualified release. Keychain profile `ethan-notary` validated with history; Team Z2SL92S4B6. The previous deferral is lifted. Goal tool still reports paused and cannot be resumed by a tool; do not create a duplicate goal. Human steering now authorizes up to two new Luna High assistants, with no child spawning. usability_tests owns tests and hidden verification; release_docs completed its three assigned docs and was interrupted. Lead executes production and distribution. Usage checker active every55s; initial46% used. Keep hidden tests and normal app intact. Production source now has native directory chooser, bounded user aliases with control-character validation, compact fresh default, disclosure-based setup/details. Node49 and build passed. Unsigned UI package prepared; usability_tests completed hidden suite; both assistants are interrupted. Semgrep refresh same approved11packs in static_analysis_semgrep_4 (process72409). Final signed build passed39 hidden tests plus one prototype-ID regression (40total). Node50 passes; clean frozen install49 plus6 byte-identical emitted files (one test-only regression added afterward). Apple app submission95e7f254-ade1-48c9-94c1-52e56e1478f0 Accepted, log issues:null. App staple/Gatekeeper and final DMG generation are in progress in process79511. Final ZIP under .local/notarized-release is being recreated AFTER app stapling. No release published yet. Guard cell12 active; last62%used.
+
+## Previous phase state
 Candidate1.1.0 is locally qualified and DeveloperID signed. **It is not notarized or published.** Ethan explicitly deferred notarization after asking us to check for saved credentials. No profile was found in accessible user Keychain metadata, relevant environment variables or standard App Store Connect key locations. No password/private key was printed or requested in chat. Remaining distribution work is deferred; do not mark the production-readiness goal complete.
 
 Repository: /Users/ethantarnarider/Documents/ChatGPT/Open source/codex-session-lens

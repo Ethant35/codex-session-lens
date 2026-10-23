@@ -122,6 +122,7 @@ test('onboarding folder setup accepts a local path without opening a native choo
   const run = await launchLens(undefined, undefined, { fresh: true });
   try {
     const intro = run.page.getByRole('region', { name: 'Getting started' });
+    await intro.getByText('Enter paths manually', { exact: true }).click();
     await intro.getByLabel('Session directories').fill('relative/path');
     await intro.getByRole('button', { name: 'Save folder and scan' }).click();
     await expect(run.page.getByRole('alert')).toContainText('Could not save this change');
@@ -142,6 +143,7 @@ test('a missing absolute source folder reports a diagnosis and can be corrected'
   try {
     const missingPath = join(run.root, 'missing-absolute-session-folder');
     const intro = run.page.getByRole('region', { name: 'Getting started' });
+    await intro.getByText('Enter paths manually', { exact: true }).click();
     await intro.getByLabel('Session directories').fill(missingPath);
     await intro.getByRole('button', { name: 'Save folder and scan' }).click();
     await expect(intro).toBeHidden();
@@ -154,6 +156,7 @@ test('a missing absolute source folder reports a diagnosis and can be corrected'
 
     await run.page.getByRole('button', { name: 'Show setup' }).click();
     const replayedSetup = run.page.getByRole('region', { name: 'Getting started' });
+    await replayedSetup.getByText('Enter paths manually', { exact: true }).click();
     await replayedSetup.getByLabel('Session directories').fill(run.source);
     await replayedSetup.getByRole('button', { name: 'Save folder and scan' }).click();
     await expect(replayedSetup).toBeHidden();

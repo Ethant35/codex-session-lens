@@ -43,6 +43,7 @@ export class CacheHost {
     return this.service;
   }
   async preferences(value: unknown) { return this.ready().preferences(value); }
+  async alias(id: unknown, label: unknown) { return this.ready().alias(id, label); }
   async select(id: unknown) { return this.ready().select(id); }
   async clear() { return this.ready().clear(); }
   async rescan() { return this.service && !this.closed ? this.service.rescan() : this.snapshot(); }

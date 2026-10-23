@@ -42,6 +42,85 @@ test('legacy preferences retain settings and do not restart setup', async t => {
   assert.equal(service.snapshot().sessions[0].id, 'real-session');
 });
 
+test('compact mode is the default for fresh preferences', async t => {
+  const { service } = await fixture(t);
+  assert.equal(service.snapshot().preferences.compact, true);
+  assert.deepEqual(service.snapshot().preferences.aliases, {});
+});
+
+test('session aliases are private labels, validated, and survive a service restart', async t => {
+  const { service, store, source, database } = await fixture(t);
+  await writeFile(join(source, 'other.jsonl'), JSON.stringify({ timestamp: '2026-10-22T10:01:00Z',
+    type: 'session_meta', payload: { id: 'other-session' } }) + '\n');
+  await service.preferences({ onboardingCompleted: true });
+  await service.alias('real-session', '  Workbench  ');
+  await service.alias('other-session', 'Workbench');
+  assert.deepEqual(service.snapshot().preferences.aliases, { 'real-session': 'Workbench', 'other-session': 'Workbench' });
+  assert.deepEqual(store.get<any>('preferences').aliases, { 'real-session': 'Workbench', 'other-session': 'Workbench' });
+  assert.deepEqual(service.snapshot().sessions.map(session => session.id).sort(), ['other-session', 'real-session']);
+
+  await assert.rejects(service.alias('unknown-session', 'Unknown'), /Unknown session/);
+  for (const label of ['x'.repeat(81), 'line\nbreak', '\nfoo', '\u202ehidden']) {
+    await assert.rejects(service.alias('real-session', label));
+    assert.deepEqual(service.snapshot().preferences.aliases, { 'real-session': 'Workbench', 'other-session': 'Workbench' });
+  }
+  await service.alias('real-session', '   ');
+  assert.deepEqual(service.snapshot().preferences.aliases, { 'other-session': 'Workbench' });
+  await service.alias('real-session', 'Return label');
+  await service.close();
+
+  const reopenedStore = new Store(database);
+  const reopened = new LensService(reopenedStore, [source]);
+  try {
+    assert.deepEqual(reopened.snapshot().preferences.aliases, { 'real-session': 'Return label', 'other-session': 'Workbench' });
+    assert.deepEqual(reopened.snapshot().sessions.map(session => session.id).sort(), ['other-session', 'real-session']);
+    await reopened.clear();
+    assert.deepEqual(reopened.snapshot().preferences.aliases, {});
+    assert.deepEqual(reopenedStore.get<any>('preferences').aliases, {});
+  } finally { await reopened.close(); }
+});
+
+test('session aliases cannot be added to synthetic samples', async t => {
+  const { service } = await fixture(t);
+  await service.preferences({ onboardingCompleted: true, sampleMode: true });
+  await assert.rejects(service.alias('sample-session', 'Example'), /Unknown session/);
+  assert.deepEqual(service.snapshot().preferences.aliases, {});
+});
+
+test('prototype-like session IDs keep own local aliases without changing identities across reload', async t => {
+  const { service, source, database } = await fixture(t);
+  const specialIds = ['constructor', '__proto__', 'toString'];
+  await Promise.all(specialIds.map(id => writeFile(join(source, `${id}.jsonl`), JSON.stringify({
+    timestamp: '2026-10-22T10:02:00Z', type: 'session_meta', payload: { id },
+  }) + '\n')));
+  await service.preferences({ onboardingCompleted: true });
+  for (const id of specialIds) await service.alias(id, `Local ${id}`);
+
+  const aliases = service.snapshot().preferences.aliases!;
+  assert.equal(Object.getPrototypeOf(aliases), Object.prototype);
+  for (const id of specialIds) {
+    assert.equal(Object.hasOwn(aliases, id), true);
+    assert.equal(aliases[id], `Local ${id}`);
+  }
+  assert.deepEqual(service.snapshot().sessions.map(session => session.id).sort(), [...specialIds, 'real-session'].sort());
+  await service.select('__proto__');
+  assert.equal(service.snapshot().preferences.selectedId, '__proto__');
+  await service.close();
+
+  const reopenedStore = new Store(database);
+  const reopened = new LensService(reopenedStore, [source]);
+  try {
+    const saved = reopened.snapshot().preferences.aliases!;
+    assert.equal(Object.getPrototypeOf(saved), Object.prototype);
+    for (const id of specialIds) {
+      assert.equal(Object.hasOwn(saved, id), true);
+      assert.equal(saved[id], `Local ${id}`);
+    }
+    assert.equal(reopened.snapshot().preferences.selectedId, '__proto__');
+    assert.deepEqual(reopened.snapshot().sessions.map(session => session.id).sort(), [...specialIds, 'real-session'].sort());
+  } finally { await reopened.close(); }
+});
+
 test('sample is isolated, preserves real selection and never enters stored history', async t => {
   const { service, store } = await fixture(t);
   await service.preferences({ onboardingCompleted: true });

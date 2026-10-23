@@ -26,3 +26,10 @@ No analytics or upload service is introduced. A bounded local diagnostic file re
 Status: accepted; distribution gate pending.
 
 The lockfile and npm ci fix the dependency graph. Repository .npmrc disables automatic lifecycle scripts. An explicit Electron installer checks its reviewed version/hash; runtime third-party notices ship unchanged. Development packaging remains unsigned and hidden-testable. A separate configuration requires Developer ID signing with hardened runtime and V8 JIT entitlement only. Notarization and stapling are separate explicit gates; a signed candidate is not a production-qualified release. No CI, hooks or global configuration changes are needed.
+
+## Private names and folder selection (2026-10-22)
+Expose a native folder chooser through the existing trusted-frame IPC boundary. It returns chosen directories or null on cancel; it does not persist anything until the user saves. Keep manual path input available on demand. The renderer has no general filesystem or shell API.
+
+Store optional user-assigned aliases with local preferences, keyed only by already-observed session IDs. Names are at most80 characters, reject control and directional-override characters, and never affect ingestion or accounting. Blank removes a name; duplicate names do not merge sessions. The renderer treats prototype-like keys as ordinary IDs and renders labels as text. At most1000 names are retained. Clear/rebuild removes names alongside the cache. No prompt/title/cwd extraction was added.
+
+Fresh installs default to compact; existing display preferences remain intact. Context remains a last-request estimate, not live occupancy. Selection remains manual. Detail disclosures replace repeated explanation. Native dialog selection is covered through a mocked Electron dialog boundary in hidden packaged tests; no claim of a hands-on Finder chooser test.
