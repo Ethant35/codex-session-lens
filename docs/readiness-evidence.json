@@ -1,0 +1,64 @@
+{
+  "author": "Ethan",
+  "candidate": "1.1.0",
+  "platform": "macOS27.2 Apple Silicon",
+  "baseline": "399d77dcc83da42baaa87b70b90a6e14088af939",
+  "nodeTests": 46,
+  "signedPackagedTests": 37,
+  "installedDmgTests": 5,
+  "actualCliAndDesktopTests": 2,
+  "actualUpgradeRollback": true,
+  "cleanBuildByteIdentical": true,
+  "developerIdSigned": true,
+  "hardenedRuntime": true,
+  "entitlements": [
+    "com.apple.security.cs.allow-jit"
+  ],
+  "notarized": false,
+  "notarization": "Deferred by Ethan; no saved profile found in inspected locations",
+  "packageCopyright": "Copyright 2026 Ethan. MIT License.",
+  "appAsarSha256": "c302d2225525cb3f93c56969842c4042db398e8cda67c1a6755737dcdb84b4b1",
+  "artifacts": {
+    "Codex Session Lens-1.1.0-arm64-mac.zip": {
+      "sha256": "5ad7ff74590ebc7f6b2a6e8dd4fb0799af430cdd293862d4fa89698350143978",
+      "bytes": 121162176
+    },
+    "Codex Session Lens-1.1.0-arm64.dmg": {
+      "sha256": "1b878b8f26cdd35eda0e329a05968f2010bcc67ef3d3b0953158e5dc83bf9c3a",
+      "bytes": 122228268
+    }
+  },
+  "fullHistory": {
+    "files": 154,
+    "bytes": 3259141468,
+    "wallSeconds": 61.36,
+    "maximumRssBytes": 433782784,
+    "diagnosticFiles": 15,
+    "diagnostics": [
+      "Oversized record skipped."
+    ],
+    "oversizedRecordCount": 39
+  },
+  "forkCompatibility": {
+    "author": "Ethan",
+    "forkFiles": 48,
+    "exactOwnTotalsMatched": 45,
+    "noOwnUsageObserved": 0,
+    "explicitlyUnavailableDueToConflictingLatestRecords": 3,
+    "unexplainedMismatches": 0,
+    "ownTelemetryRecords": 11387,
+    "inheritedTelemetryRecordsExcluded": 0
+  },
+  "staticScan": {
+    "engine": "Community1.182.1",
+    "packs": 11,
+    "warningHeuristics": 2,
+    "informationalHeuristics": 5,
+    "ruleParseErrors": 15,
+    "rendererPartialParsing": true,
+    "failedPacks": 0,
+    "skippedPacks": 0
+  },
+  "productionReady": false,
+  "implementationCommit": "319115a"
+}
