@@ -1,20 +1,47 @@
-# Codex Session Lens v1.0.1 handoff
+# Session Lens release handoff
 Author: Ethan
-Updated: 2026-10-22, America/Los_Angeles
+Checkpoint:2026-10-22, America/Los_Angeles
 
-The telemetry audit, repair and local acceptance are complete. Repository: https://github.com/Ethant35/codex-session-lens. Release: https://github.com/Ethant35/codex-session-lens/releases/tag/v1.0.1. Use `gh release view v1.0.1` to check publication state on resume. Application source commit: 01a746c90180105c5966297e9b460745704ccbda. Later evidence/documentation commits do not change the application. See docs/patch-audit.md and docs/patch-*.json for sanitized evidence.
+## Qualified release
+Version1.1.0 is qualified on Apple Silicon/macOS27.2. This checkpoint precedes the final PR merge and publication. Inspect GitHub for live state; the release notes record the final public-delivery check. Do not rebuild or replace qualified artifact bytes.
 
-## Changed and checked
-Three v1 defects reproduced in the released package: reverse discovery lost model/usage, restart kept suppressed metrics missing, and late compaction left stale context. The patch persists sanitized observations and projects changed sessions in timestamp order. Equal-time conflicts are explicit unknowns; cumulative snapshots are not added. The transactional v1 upgrade keeps preferences/history, clears old deduplication hashes once and discloses missing historical coverage.
+Repository: https://github.com/Ethant35/codex-session-lens
+PR: https://github.com/Ethant35/codex-session-lens/pull/4
+Release: https://github.com/Ethant35/codex-session-lens/releases/tag/v1.1.0
+Branch: codex/production-readiness
+Implementation:6c00a85cffb94ab0a19480116ef32eb8c84caace, author/committer Ethan.
+Earlier core/CLI work:319115a and dde3e0f. Baseline:399d77d /1.0.1.
 
-Final primary background suite23/23; independent clean clone23/23; actual Codex CLI/desktop2/2; DMG-installed checks5/5. The final real turn matched input15827/output10/cached7168 after terminal-first ingestion, restart and overlap. Both v1 migration cases passed before the background-mode request. Native installed --background ingested correctly, exited0 through SIGTERM/app.quit and passed SQLite integrity. Primary/clean/installed app.asar SHA256: 39cf6a7c99368bfaef1a09e579b5a8242d7d5d1c4bf20e30c44cfb5e65922182.
+## Delivered
+Native folder chooser through trusted IPC: cancel changes nothing; Save persists the selected folders. Manual paths remain available on demand. Private user-assigned names stay bound to observed IDs without prompt-derived titles, source edits or automatic foreground switching. Duplicate names never merge sessions; prototype-like IDs survive save/restart. Fresh installs default compact; saved preferences remain intact. Setup/sample replay, request/source details, settings and return flows are documented.
 
-## Required working rules
-Ethan requested no disruptive app tests. Tests and preview captures default to --background: hidden window and Dock icon, no focus, terminal failures, nonzero exit on fatal errors. Ctrl+C/SIGTERM performs normal shutdown. Do not set LENS_VISIBLE_TESTS=1 or LENS_ALLOW_VISIBLE_BASELINE=1 without an explicit request. v1 cannot run hidden; its migration evidence already passed and should not be rerun visibly. Keep test cleanup automatic. Normal GUI launches still show the HUD.
+The pure Node CLI keeps routine tests quiet. Prior bounded ingestion/accounting/recovery/security improvements remain. No visible app tests or native dialogs were shown in this phase.
 
-GitHub Actions are disabled and run count is zero. Preserve that state, verify before pushes/tags, and never create or dispatch workflows. No config.toml changes. Use only local E2E checks. No subagent work is active. The supported account usage checker runs every45seconds during active work; stop all work if any applicable window reaches100%used. No credit/reset/provider bypass.
+## Final evidence
+-50 Node tests and50 tests from clean frozen install; all6 emitted files byte-identical.
+-40 hidden signed-package checks and40 checks from the exact GitHub-downloaded DMG installation, no retries/skips/failures. Includes actual1.0.1 forward/rollback/forward, first telemetry, aliases/settings/restart, sample/replay, filesystem/SQLite failures, privacy, native shutdown and recovery.
+-Axe positive control, no serious/critical findings, AX tree/keyboard, themes/narrow/200%zoom. A reproduced transient theme contrast defect was fixed by removing button color transitions.
+-Approved Semgrep Community1.182.1 same11packs:8 reviewed heuristics, no confirmed exploit;15 rule-pattern errors and6 partial renderer parses disclosed. Local output static_analysis_semgrep_4; clones removed. No metrics/Pro/cloud/CI/autofix. npm audit0 advisories.
+-Prior real-history/property/load evidence remains applicable to unchanged core modules. Actual account-backed CLI acceptance was from the previous phase; it was not rerun for UI-only changes.
+-Bounded read-only review found no material issue. Native chooser responses are mocked to keep tests hidden. No unfamiliar-user study, manual VoiceOver or human Finder installation is claimed.
 
-## Installed files and limits
-Installed app: /Users/ethantarnarider/Applications/Codex Session Lens.app. Previous install retained at .local/installed-v1.0.0.app. Final DMG/ZIP under release/. Clean clone under .local/audit-clean-checkout. The mounted DMG was ejected. No raw user rollouts or test traces are published.
+## Final artifacts
+Apple app submission95e7f254-ade1-48c9-94c1-52e56e1478f0:Accepted, issues:null.
+Apple DMG submission21ca9921-f378-41dd-af5c-a60130233632:Accepted, issues:null.
+Developer ID Ethan Tarnarider, TeamZ2SL92S4B6; hardened runtime with only allow-jit. App stapled before ZIP recreation and DMG generation. DMG signed/notarized/stapled. Gatekeeper and tickets pass, including downloaded quarantined DMG/app and ZIP-extracted app.
 
-Manual session selection only; context is a last-request estimate, not current occupancy. Only uncompressed local JSONL and Apple Silicon/macOS27.2 were exercised. Source timestamp conflicts remain conservative. Missing v1 history cannot be reconstructed without sources. No Developer ID signing/notarization. Production dependency audit has zero findings; eight moderate packaging-tool findings remain disclosed. Personal author fields are Ethan where supported; DMG/ZIP/plain source have no portable author field. Factual producer metadata and the original MIT license remain intact.
+Final archives: .local/notarized-release; downloaded copies: .local/downloaded-release.
+ZIP SHA256:815dd4af2cf4473684bbd7f004f3dff3b13f766990aeb30ceeb7096daf8b0a0f
+DMG SHA256:111cd37460b5810e50df4fed19e8baa714cabf94ee99495e4b355a8f72bb3d56
+app.asar SHA256:828448ce0e2aa635301b305ec9f0522f00ecbcbbc3aeb3ecfed2b2cb8c071e79
+GitHub replaces filename spaces with periods; SHA256SUMS.txt matches actual asset names. Old .local/signed-candidate archives are historical, not this release.
+
+Credentials stay in local Keychain profile ethan-notary. No secret belongs in chat/repository. Native signing stages outside synced Documents under OS temp codex-session-lens-release.
+
+## Publication checkpoint
+All acceptance gates passed. Verify Actions disabled, push final evidence, ready/merge PR4, point the prepared draft release to its merge commit, then publish. Fetch public assets without authentication and compare hashes; record the result in release notes. If already published and hashes match, these steps are complete. Never rebuild or retag different binaries silently.
+
+## Cleanup and safeguards
+Both Luna High assistants completed and were interrupted. Neither spawned agents. Test processes exited; clean checkout and temporary installed app/ZIP trees were removed; DMG ejected. The normal1.0.1 app was not replaced or closed. README images are synthetic, with verified PNG Author=Ethan; package/copyright/commit identity also Ethan. ZIP/DMG have no portable personal-author field.
+
+Actions disabled,0runs. No hooks/global config/config.toml edits. Private histories/traces/scans stay ignored. Guard cell12 checks every55seconds; last72%used. At90%used in any window stop owned work, save state and pause without auto-resume. After successful publication terminate checker and complete existing goal. It still carries the earlier paused status; no duplicate goal was created.

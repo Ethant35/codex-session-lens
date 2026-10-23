@@ -1,0 +1,112 @@
+{
+  "author": "Ethan",
+  "candidate": "1.1.0",
+  "platform": "macOS27.2 Apple Silicon",
+  "baseline": "399d77dcc83da42baaa87b70b90a6e14088af939",
+  "nodeTests": 50,
+  "signedPackagedTests": 40,
+  "installedDmgTests": 40,
+  "actualCliAndDesktopTests": 2,
+  "actualUpgradeRollback": true,
+  "cleanBuildByteIdentical": true,
+  "developerIdSigned": true,
+  "hardenedRuntime": true,
+  "entitlements": [
+    "com.apple.security.cs.allow-jit"
+  ],
+  "notarized": true,
+  "notarization": {
+    "app": {
+      "id": "95e7f254-ade1-48c9-94c1-52e56e1478f0",
+      "status": "Accepted",
+      "issues": null
+    },
+    "dmg": {
+      "id": "21ca9921-f378-41dd-af5c-a60130233632",
+      "status": "Accepted",
+      "issues": null
+    }
+  },
+  "packageCopyright": "Copyright 2026 Ethan. MIT License.",
+  "appAsarSha256": "828448ce0e2aa635301b305ec9f0522f00ecbcbbc3aeb3ecfed2b2cb8c071e79",
+  "artifacts": {
+    "Codex.Session.Lens-1.1.0-arm64-mac.zip": {
+      "sha256": "815dd4af2cf4473684bbd7f004f3dff3b13f766990aeb30ceeb7096daf8b0a0f",
+      "bytes": 122775299
+    },
+    "Codex.Session.Lens-1.1.0-arm64.dmg": {
+      "sha256": "111cd37460b5810e50df4fed19e8baa714cabf94ee99495e4b355a8f72bb3d56",
+      "bytes": 122248307
+    }
+  },
+  "fullHistory": {
+    "files": 154,
+    "bytes": 3259141468,
+    "wallSeconds": 61.36,
+    "maximumRssBytes": 433782784,
+    "diagnosticFiles": 15,
+    "diagnostics": [
+      "Oversized record skipped."
+    ],
+    "oversizedRecordCount": 39
+  },
+  "forkCompatibility": {
+    "author": "Ethan",
+    "forkFiles": 48,
+    "exactOwnTotalsMatched": 45,
+    "noOwnUsageObserved": 0,
+    "explicitlyUnavailableDueToConflictingLatestRecords": 3,
+    "unexplainedMismatches": 0,
+    "ownTelemetryRecords": 11387,
+    "inheritedTelemetryRecordsExcluded": 0
+  },
+  "staticScan": {
+    "engine": "Community1.182.1",
+    "packs": 11,
+    "warningHeuristics": 2,
+    "informationalHeuristics": 6,
+    "ruleParseErrors": 15,
+    "rendererPartialParsing": true,
+    "failedPacks": 0,
+    "skippedPacks": 0
+  },
+  "productionReady": true,
+  "implementationCommit": "6c00a85",
+  "previousCandidateArtifacts": {
+    "Codex Session Lens-1.1.0-arm64-mac.zip": {
+      "sha256": "5ad7ff74590ebc7f6b2a6e8dd4fb0799af430cdd293862d4fa89698350143978",
+      "bytes": 121162176
+    },
+    "Codex Session Lens-1.1.0-arm64.dmg": {
+      "sha256": "1b878b8f26cdd35eda0e329a05968f2010bcc67ef3d3b0953158e5dc83bf9c3a",
+      "bytes": 122228268
+    }
+  },
+  "cleanNodeTests": 50,
+  "stapled": {
+    "app": true,
+    "dmg": true,
+    "zipRecreatedAfterAppStaple": true
+  },
+  "usability": {
+    "nativeFolderChooser": true,
+    "privateAliases": "user-assigned labels bound to observed IDs; no prompt-derived titles",
+    "compactFreshDefault": true,
+    "preservesExistingPreferences": true,
+    "nativeChooserTest": "mocked Electron boundary to keep dialogs hidden",
+    "unfamiliarUserStudy": false,
+    "manualVoiceOver": false
+  },
+  "downloadVerification": {
+    "source": "GitHub draft release assets",
+    "hashesMatchFinal": true,
+    "quarantineAppliedForGatekeeperAssessment": true,
+    "dmgReadOnlyMountedAndEjected": true,
+    "installedAppStapleAndGatekeeper": true,
+    "zipAppStapleAndGatekeeper": true,
+    "isolatedInstalledTests": 40,
+    "publicDelivery": "Final public download checked after publication; see release notes."
+  },
+  "releaseTag": "v1.1.0",
+  "releaseUrl": "https://github.com/Ethant35/codex-session-lens/releases/tag/v1.1.0"
+}

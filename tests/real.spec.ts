@@ -62,7 +62,7 @@ test('SL-11 actual Codex CLI session has the same rendered usage as its real rol
   } finally {await run.close();if(reorderedRoot)await rm(reorderedRoot,{recursive:true,force:true});}
 });
 
-test('SL-12 installed Codex desktop is present; manual selection is explicitly unsupported for automatic switching', async () => {
+test('SL-12 installed Codex desktop is present; selection is manual and foreground identity is unavailable', async () => {
   const {stdout} = await exec('osascript',['-e','tell application "System Events" to get bundle identifier of every process']);
   expect(stdout).toContain('com.openai.codex');
   const run = await launchLens();
@@ -74,7 +74,11 @@ test('SL-12 installed Codex desktop is present; manual selection is explicitly u
     await appendTokenCount(b,'manual-two',{total:{input:90,output:9},latest:{input:90,output:9}});
     await run.page.getByTestId('session-manual-one').click();
     await expect(run.page.getByTestId('total-input')).toHaveText('10');
-    await expect(run.page.getByText(/Automatic switching to the foreground Codex conversation is unsupported/)).toBeVisible();
+    await run.page.getByRole('button', { name: 'Settings', exact: true }).click();
+    await expect(run.page.getByText('About selection and updates', { exact: true })).toBeVisible();
+    await run.page.getByText('About selection and updates', { exact: true }).click();
+    await expect(run.page.getByText(/Selection is manual\. Session Lens cannot identify your foreground Codex chat\./)).toBeVisible();
+    await run.page.getByRole('button', { name: 'Close settings', exact: true }).click();
     await run.page.locator('.session-picker > summary').click();
     await run.page.getByTestId('session-manual-two').click();
     await expect(run.page.getByTestId('total-input')).toHaveText('90');

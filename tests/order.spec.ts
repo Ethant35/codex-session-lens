@@ -20,6 +20,8 @@ async function rescan(run:LensRun){
 }
 async function select(run:LensRun){await run.page.getByTestId(`session-${id}`).click();}
 async function metrics(run:LensRun,context='25%'){
+ const expand=run.page.getByRole('button',{name:'Expand display',exact:true});
+ if(await expand.isVisible())await expand.click();
  await expect(run.page.getByTestId('model')).toHaveText('gpt-6-luna');
  await expect(run.page.getByTestId('total-input')).toHaveText('2,000');
  await expect(run.page.getByTestId('total-output')).toHaveText('200');
