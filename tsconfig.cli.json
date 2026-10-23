@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["src/cli/**/*.ts", "src/main/ingestion.ts", "src/main/projection.ts", "src/main/store.ts", "src/shared.ts"]
+}

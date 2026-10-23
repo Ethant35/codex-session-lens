@@ -38,7 +38,7 @@ const usage = (value: UsageFixture) => ({
   total_tokens: value.input + value.output,
 });
 
-export async function launchLens(source?: string, data?: string): Promise<LensRun> {
+export async function launchLens(source?: string, data?: string, options: { fresh?: boolean } = {}): Promise<LensRun> {
   const root = await mkdtemp(join(tmpdir(), 'codex-session-lens-e2e-'));
   const sessionDir = source ? resolve(source) : join(root, 'sessions');
   const dataDir = data ? resolve(data) : join(root, 'app-data');
@@ -55,6 +55,12 @@ export async function launchLens(source?: string, data?: string): Promise<LensRu
   try {
     page = await app.firstWindow();
     await page.getByText('CODEX SESSION LENS', { exact: true }).waitFor();
+    await page.waitForFunction(() => !!window.lens);
+    const state = await page.evaluate(() => window.lens.snapshot());
+    if (!options.fresh && state.preferences.onboardingCompleted === false) {
+      await page.getByRole('button', { name: 'Skip setup', exact: true }).click();
+      await page.getByRole('region', { name: 'Getting started' }).waitFor({ state: 'hidden' });
+    }
     if(process.env.LENS_VISIBLE_TESTS!=='1'){
       const state=await app.evaluate(({app,BrowserWindow})=>({
         visible:BrowserWindow.getAllWindows().some(w=>w.isVisible()),
@@ -97,10 +103,16 @@ async function stopApp(app: ElectronApplication): Promise<void> {
   try {
     // Observe the real lifecycle after the application's SQLite close listener.
     // Electron's attached inspector can keep an otherwise-quit test process alive.
-    await app.evaluate(({app}) => {
-      app.once('will-quit',()=>console.log('LENS_TEST_WILL_QUIT'));
-      setTimeout(()=>app.quit(),20);
-    });
+    try {
+      await app.evaluate(({app}) => {
+        app.once('will-quit',()=>console.log('LENS_TEST_WILL_QUIT'));
+        setTimeout(()=>app.quit(),20);
+      });
+    } catch (error) {
+      // A test may intentionally trigger a fatal main-process exit before cleanup runs.
+      await Promise.race([exited,new Promise<void>(resolve=>setTimeout(resolve,1000))]);
+      if (child.exitCode === null && child.signalCode === null) throw error;
+    }
     await Promise.race([quit,exited,new Promise<never>((_,reject)=>{
       timeout=setTimeout(()=>reject(new Error('App did not reach will-quit in five seconds')),5000);
     })]);

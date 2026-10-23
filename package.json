@@ -1,16 +1,27 @@
 {
   "name": "codex-session-lens",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Local session telemetry companion HUD for Codex",
   "author": "Ethan",
   "license": "MIT",
   "main": "dist/main/main.cjs",
   "scripts": {
+    "cli": "node scripts/run-cli.mjs",
+    "build:cli": "tsc --noEmit -p tsconfig.cli.json && node scripts/build-cli.mjs",
+    "test": "npm run test:cli && npm run test:service && npm run test:recovery && npm run test:core && npm run test:diagnostics",
+    "test:recovery": "node scripts/test-recovery.mjs",
+    "test:service": "node scripts/test-service.mjs",
+    "test:core": "node scripts/test-core.mjs",
+    "test:cli": "npm run build:cli && node --test tests/cli.test.mjs",
     "dev": "npm run build && electron .",
     "build": "tsc --noEmit && vite build && node scripts/build-main.mjs",
-    "package:mac": "npm run build && electron-builder --mac dmg zip --arm64 --publish never",
-    "test:e2e": "playwright test tests/acceptance.spec.ts tests/privacy.spec.ts tests/edge.spec.ts tests/order.spec.ts",
-    "test:e2e:real": "playwright test tests/real.spec.ts"
+    "package:mac": "npm run prepare:electron && npm run prepare:notices && npm run build && electron-builder --mac dmg zip --arm64 --publish never",
+    "test:e2e": "playwright test tests/acceptance.spec.ts tests/privacy.spec.ts tests/edge.spec.ts tests/order.spec.ts tests/onboarding-accessibility.spec.ts tests/lifecycle.spec.ts tests/operational-ui.spec.ts",
+    "test:e2e:real": "playwright test tests/real.spec.ts",
+    "test:diagnostics": "node scripts/test-diagnostics.mjs",
+    "prepare:electron": "node scripts/prepare-electron.mjs",
+    "prepare:notices": "node scripts/prepare-notices.mjs",
+    "test:upgrade": "playwright test tests/upgrade-current.spec.ts"
   },
   "build": {
     "appId": "com.ethan.codex-session-lens",
@@ -49,7 +60,16 @@
           "path": "/Applications"
         }
       ]
-    }
+    },
+    "extraResources": [
+      {
+        "from": "build/notices",
+        "to": "licenses",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
   },
   "dependencies": {
     "react": "^19.3.1",
@@ -60,11 +80,17 @@
     "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "axe-core": "4.14.0",
     "electron": "^45.0.0",
     "electron-builder": "^26.15.3",
     "esbuild": "^0.28.2",
+    "fast-check": "4.10.2",
     "typescript": "^7.0.2",
     "vite": "^8.3.5"
   },
-  "type": "module"
+  "type": "module",
+  "packageManager": "npm@10.9.2",
+  "engines": {
+    "node": ">=22.13.1"
+  }
 }

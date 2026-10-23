@@ -81,7 +81,7 @@ function App() {
 
   const prefs = snapshot?.preferences;
   const sessions = snapshot?.sessions ?? [];
-  const selected = sessions.find(session => session.id === prefs?.selectedId) ?? null;
+  const selected = sessions.find(session => session.id === prefs?.selectedId) ?? (prefs?.sampleMode ? sessions[0] ?? null : null);
   const sorted = useMemo(() => [...sessions].sort((a, b) => Date.parse(b.lastActivity) - Date.parse(a.lastActivity)), [sessions]);
   const recent = useMemo(() => {
     const recentIds = prefs?.recentIds ?? [];
@@ -93,6 +93,19 @@ function App() {
 
   const setPreference = (value: Partial<Preferences>) => mutate(() => window.lens.preferences(value));
 
+  const finishSetup = async (sampleMode: boolean) => {
+    const saved = await setPreference({ onboardingCompleted: true, sampleMode });
+    if (saved) setEditingDirectories(false);
+  };
+  const useSessionFolders = async () => {
+    const directories = directoriesText.split('\n').map(item => item.trim()).filter(Boolean);
+    const saved = await mutate(() => window.lens.preferences({ directories, onboardingCompleted: true, sampleMode: false }));
+    if (saved) {
+      setEditingDirectories(false);
+      await mutate(() => window.lens.rescan());
+    }
+  };
+
   return <main className="app-shell" data-theme={prefs?.theme ?? 'system'} data-compact={prefs?.compact ? 'true' : 'false'}>
     <header className="topbar">
       <div className="brand-mark" aria-hidden="true"><span /></div>
@@ -101,7 +114,7 @@ function App() {
         <span className="connection"><i /> On this Mac</span>
       </div>
       <div className="top-actions">
-        <button className="quiet-button" type="button" onClick={() => setSettingsOpen(value => !value)} aria-expanded={settingsOpen}>
+        <button className="quiet-button" type="button" onClick={() => setSettingsOpen(value => !value)} aria-expanded={settingsOpen} aria-controls={snapshot ? 'settings-panel' : undefined}>
           {settingsOpen ? 'Close settings' : 'Settings'}
         </button>
         <button className="icon-button" type="button" onClick={() => setPreference({ compact: !prefs?.compact })} aria-label={prefs?.compact ? 'Expand display' : 'Compact display'} title={prefs?.compact ? 'Expand' : 'Compact'}>
@@ -110,10 +123,49 @@ function App() {
       </div>
     </header>
 
-    {loadError && <div className="notice error" role="status">Session data could not be read. The HUD will keep trying.</div>}
-    {actionError && <div className="notice error" role="alert">That change could not be saved. Try again.</div>}
+    <a className="skip-link" href={loadError ? '#load-error' : snapshot?.recovery ? '#recovery-state' : '#session-selection'}>Skip to current content</a>
 
-    <section className="session-bar" aria-label="Session selection">
+    {snapshot === null && !loadError && <section id="session-selection" className="loading-state" role="status" aria-live="polite" tabIndex={-1}>Loading local session data…</section>}
+
+    {loadError && <div id="load-error" className="notice error" role="alert" tabIndex={-1}>Session data could not be read. Check the folder permissions or try again. <button type="button" className="text-button" onClick={() => void refresh()}>Try again</button></div>}
+    {actionError && <div id="action-error" className="notice error" role="alert">Could not save this change. Check the folder path or setting and try again.</div>}
+
+    {snapshot?.recovery && <section id="recovery-state" className="recovery-state" role="alert" aria-labelledby="recovery-title" tabIndex={-1}>
+      <h1 id="recovery-title">Cache unavailable</h1>
+      <p>{snapshot.recovery.message}</p>
+      <p>Session source files are read-only. Cache recovery does not change or delete those files.</p>
+      <div className="recovery-actions">
+        <button type="button" className="primary-button" disabled={busy} onClick={() => void mutate(() => window.lens.recover('retry'))}>{busy ? 'Retrying…' : 'Retry cache'}</button>
+        {snapshot.recovery.canRebuild && <details className="recovery-confirm">
+          <summary>Back up and rebuild cache</summary>
+          <p>This creates a retained backup, then clears local telemetry and resets preferences. Your session source files are not changed.</p>
+          <button type="button" className="danger-button" disabled={busy} onClick={() => void mutate(() => window.lens.recover('rebuild'))}>{busy ? 'Rebuilding…' : 'Confirm backup and rebuild'}</button>
+        </details>}
+      </div>
+    </section>}
+
+    {snapshot && !snapshot.recovery && prefs?.onboardingCompleted === false && <section id="session-selection" className="onboarding" aria-label="Getting started" tabIndex={-1}>
+      <div className="onboarding-copy">
+        <h1>Get started</h1>
+        <p>Session Lens reads local Codex session files in the folders below. Prompts are not displayed, source files are read-only, and the cache stays on this Mac. Review or change these folders before continuing.</p>
+      </div>
+      <label className="field onboarding-directories">Session directories <span id="setup-directory-hint" className="field-hint">One local path per line. Only these folders are watched.</span>
+        <textarea aria-label="Session directories" aria-describedby={`setup-directory-hint${actionError ? ' action-error' : ''}`} name="session-directories" autoComplete="off" value={directoriesText} onFocus={() => setEditingDirectories(true)} onChange={event => { setDirectoriesText(event.target.value); setEditingDirectories(true); }} rows={3} spellCheck={false} />
+      </label>
+      <div className="onboarding-actions">
+        <button type="button" className="primary-button" disabled={busy} onClick={() => void useSessionFolders()}>{busy ? 'Scanning…' : 'Save folder and scan'}</button>
+        <button type="button" className="quiet-button" disabled={busy} onClick={() => void finishSetup(true)}>Use synthetic sample</button>
+        <button type="button" className="text-button" disabled={busy} onClick={() => void finishSetup(false)}>Skip setup</button>
+      </div>
+      <p className="onboarding-note">The sample is synthetic and stays separate from your session folders and telemetry.</p>
+    </section>}
+
+    {snapshot && !snapshot.recovery && prefs?.sampleMode && prefs.onboardingCompleted !== false && <div className="sample-notice">
+      <div role="status" aria-live="polite"><strong>Synthetic sample data</strong><span> This example is synthetic and was not read from your session folders.</span></div>
+      <button className="quiet-button" type="button" disabled={busy} onClick={() => void finishSetup(false)}>Use my sessions</button>
+    </div>}
+
+    {snapshot && !snapshot.recovery && prefs?.onboardingCompleted !== false && <section id="session-selection" className="session-bar" aria-label="Session selection" tabIndex={-1}>
       <div className="session-heading">
         <div>
           <p className="eyebrow">MANUAL SESSION</p>
@@ -143,9 +195,9 @@ function App() {
         {filtered.length === 0 && <p className="list-empty">{sessions.length ? 'No sessions match that search.' : 'No sessions found yet.'}</p>}
       </div>
       </details>
-    </section>
+    </section>}
 
-    {selected ? <>
+    {snapshot && !snapshot.recovery && prefs?.onboardingCompleted !== false && selected ? <>
       <section className="summary-card" aria-label="Selected session details">
         <div className="summary-head">
           <div className="session-ident">
@@ -195,22 +247,22 @@ function App() {
           {selected.compactions.length ? <ol className="timeline">{selected.compactions.map((event, index) => <li key={`${event.timestamp}-${index}`}><span className="timeline-marker" /><div><strong>Context compacted</strong><small>{formatTime(event.timestamp)}</small><Provenance {...event.provenance} /></div></li>)}</ol> : <p className="detail-content subdued">No recorded compaction events for this session.</p>}
         </details>
       </div>
-    </> : <section className="empty-card">
+    </> : snapshot && !snapshot.recovery && prefs?.onboardingCompleted !== false ? <section className="empty-card">
       <div className="empty-illustration" aria-hidden="true"><span /><span /><span /></div>
       <h2>{sessions.length ? 'Select a session' : 'No local sessions'}</h2>
       <p>{sessions.length ? 'Use the session selector above.' : 'Set source directories in Settings, or start a Codex session.'}</p>
       <button className="quiet-button" type="button" onClick={() => void mutate(() => window.lens.rescan())}>Rescan sessions</button>
-    </section>}
+    </section> : null}
 
-    {settingsOpen && <section className="settings-card" aria-label="Settings and diagnostics">
+    {snapshot && <section id="settings-panel" className="settings-card" aria-label="Settings and diagnostics" hidden={!settingsOpen}>
       <div className="settings-title"><div><span className="section-label">PREFERENCES</span><h2>Settings & diagnostics</h2></div><button type="button" className="quiet-button" onClick={() => void mutate(() => window.lens.rescan())}>Rescan</button></div>
       <div className="settings-grid">
         <label className="field">Theme<select aria-label="Theme" value={prefs?.theme ?? 'system'} onChange={event => setPreference({ theme: event.target.value as Preferences['theme'] })}><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
         <label className="toggle-field"><input type="checkbox" checked={prefs?.alwaysOnTop ?? false} onChange={event => setPreference({ alwaysOnTop: event.target.checked })} />Always on top</label>
         <label className="toggle-field"><input type="checkbox" checked={prefs?.paused ?? false} onChange={event => setPreference({ paused: event.target.checked })} />Pause ingestion</label>
       </div>
-      <label className="field directory-field">Session directories <span className="field-hint">One local path per line</span>
-        <textarea aria-label="Session directories" value={directoriesText} onFocus={() => setEditingDirectories(true)} onChange={event => { setDirectoriesText(event.target.value); setEditingDirectories(true); }} rows={3} spellCheck={false} />
+      <label className="field directory-field">Session directories <span id="settings-directory-hint" className="field-hint">One local path per line</span>
+        <textarea aria-label="Session directories" aria-describedby={`settings-directory-hint${actionError ? ' action-error' : ''}`} name="session-directories" autoComplete="off" value={directoriesText} onFocus={() => setEditingDirectories(true)} onChange={event => { setDirectoriesText(event.target.value); setEditingDirectories(true); }} rows={3} spellCheck={false} />
       </label>
       <div className="form-actions"><button type="button" className="primary-button" disabled={busy} onClick={() => { const directories = directoriesText.split('\n').map(item => item.trim()).filter(Boolean); void mutate(() => window.lens.preferences({ directories })).then(saved => { if (saved) setEditingDirectories(false); }); }}>Save directories</button>
         {clearPending ? <><span className="confirm-copy">This clears saved telemetry and pauses ingestion.</span><button className="danger-button" type="button" disabled={busy} onClick={() => { void mutate(() => window.lens.clear()); setClearPending(false); }}>Confirm clear</button><button type="button" className="quiet-button" onClick={() => setClearPending(false)}>Cancel</button></> : <button type="button" className="danger-link" onClick={() => setClearPending(true)}>Clear telemetry</button>}</div>
@@ -219,9 +271,10 @@ function App() {
         <div className="diagnostic-stats"><span><b>{snapshot?.diagnostics.errors ?? 0}</b> ingestion errors</span><span><b>{snapshot?.diagnostics.blockedRequests ?? 0}</b> blocked requests</span><span>Last scan <b>{formatTime(snapshot?.diagnostics.lastScan)}</b></span></div>
         {(snapshot?.diagnostics.messages ?? []).length > 0 ? <ul>{snapshot!.diagnostics.messages.map((message, index) => <li key={`${index}-${message}`}>{message}</li>)}</ul> : <p className="subdued">No diagnostic messages.</p>}
       </div>
+      <div className="setup-replay"><p>Need to change your session folder or try the sample?</p><button type="button" className="text-button" disabled={busy} onClick={() => { setSettingsOpen(false); void setPreference({ onboardingCompleted: false, sampleMode: false }); }}>Show setup</button></div>
     </section>}
 
-    <footer className="footer"><span>Local only · prompts are not displayed</span><span>{busy ? 'Saving…' : prefs?.paused ? 'Ingestion paused' : 'Watching for updates'}</span></footer>
+    <footer className="footer"><span>Local only · prompts are not displayed</span><span>{busy ? 'Saving…' : snapshot?.recovery ? 'Cache unavailable' : prefs?.paused ? 'Ingestion paused' : 'Watching for updates'}</span></footer>
   </main>;
 }
 

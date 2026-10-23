@@ -4,4 +4,11 @@ release/
 test-results/
 playwright-report/
 .local/
+static_analysis_semgrep_*/
 .DS_Store
+.env
+.env.*
+*.pem
+*.key
+*.p8
+build/notices/
