@@ -1,6 +1,6 @@
 {
   "name": "codex-session-lens",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Local session telemetry companion HUD for Codex",
   "author": "Ethan",
   "license": "MIT",

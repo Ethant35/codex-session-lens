@@ -9,6 +9,8 @@ const yieldToEventLoop=()=>new Promise<void>(resolve=>setImmediate(resolve));
 const isObject=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const isCount=(value:unknown):value is number=>Number.isSafeInteger(value)&&(value as number)>=0;
 const isIdentity=(value:unknown):value is string=>typeof value==='string'&&/^[a-zA-Z0-9_-]{1,128}$/.test(value);
+const isProjectLabel=(value:unknown):value is string=>typeof value==='string'&&Array.from(value).length>0&&Array.from(value).length<=64&&
+  value===value.trim()&&value!=='.'&&value!=='..'&&!/[:\\/\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/u.test(value);
 const isTimestamp=(value:unknown):value is string=>typeof value==='string'&&Number.isFinite(Date.parse(value));
 function isUsage(value:unknown){
   if(!isObject(value))return false;
@@ -63,6 +65,7 @@ export class Store {
   private db: DatabaseSync;
   private closed = false;
   private scanOpen = false;
+  private projectLabelCache=new Map<string,string>();
   constructor(path: string) {
     mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
     try {
@@ -77,10 +80,16 @@ export class Store {
       CREATE TABLE IF NOT EXISTS seen(id TEXT PRIMARY KEY);
       CREATE TABLE IF NOT EXISTS settings(id TEXT PRIMARY KEY, value TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS observations(id TEXT PRIMARY KEY, session TEXT NOT NULL, value TEXT NOT NULL);
+      CREATE TABLE IF NOT EXISTS project_labels(id TEXT PRIMARY KEY, label TEXT NOT NULL CHECK(length(label)<=64));
       CREATE INDEX IF NOT EXISTS observations_projection_v2 ON observations(session, CASE WHEN json_valid(value) THEN json_extract(value,'$.provenance.timestamp') ELSE '' END COLLATE BINARY, id COLLATE BINARY);
       DROP INDEX IF EXISTS observations_session;
       DROP INDEX IF EXISTS observations_projection;
-      CREATE TEMP TABLE IF NOT EXISTS scan_sessions(id TEXT PRIMARY KEY);`);
+      CREATE TEMP TABLE IF NOT EXISTS scan_sessions(id TEXT PRIMARY KEY);
+      CREATE TEMP TABLE IF NOT EXISTS scan_project_labels(id TEXT PRIMARY KEY, label TEXT);`);
+    for(const row of this.db.prepare('SELECT id,label FROM project_labels').all() as {id:string;label:string}[]){
+      if(!isIdentity(row.id)||!isProjectLabel(row.label))throw new SyntaxError('Invalid cached project label');
+      this.projectLabelCache.set(row.id,row.label);
+    }
     if(this.get<number>('projectionVersion')!==2){
       this.db.exec('BEGIN');
       try{
@@ -103,6 +112,30 @@ export class Store {
       return value;
     });
   }
+  decorateSessions(sessions:Session[]):Session[]{
+    return sessions.map(session=>{
+      const {projectLabel:_stale,...withoutLabel}=session;
+      const label=this.projectLabelCache.get(session.id);
+      if(label===undefined)return withoutLabel;
+      return {...session,projectLabel:label};
+    });
+  }
+  clearProjectLabels(){
+    if(this.scanOpen)throw new Error('Cannot clear project labels during a scan');
+    this.db.exec('BEGIN');
+    try{this.db.exec('DELETE FROM project_labels');this.db.exec('COMMIT');this.projectLabelCache.clear();}
+    catch(error){this.db.exec('ROLLBACK');throw error;}
+  }
+  savePreferences(value:Preferences,clearProjectLabels=false){
+    if(this.scanOpen)throw new Error('Cannot update preferences during a scan');
+    this.db.exec('BEGIN');
+    try{
+      this.set('preferences',value);
+      if(clearProjectLabels)this.db.exec('DELETE FROM project_labels');
+      this.db.exec('COMMIT');
+      if(clearProjectLabels)this.projectLabelCache.clear();
+    }catch(error){this.db.exec('ROLLBACK');throw error;}
+  }
   get<T>(id: string): T | null {
     const r = this.db.prepare('SELECT value FROM settings WHERE id=?').get(id) as {value:string} | undefined;
     return r ? JSON.parse(r.value) : null;
@@ -116,7 +149,17 @@ export class Store {
     if(this.closed)throw new Error('Cache is closed');
     if(this.scanOpen)throw new Error('A scan transaction is already open');
     this.db.exec('BEGIN');this.scanOpen=true;
-    try{this.db.exec('DELETE FROM temp.scan_sessions');}catch(error){try{this.rollbackScan();}catch{}throw error;}
+    try{this.db.exec('DELETE FROM temp.scan_sessions; DELETE FROM temp.scan_project_labels;');}catch(error){try{this.rollbackScan();}catch{}throw error;}
+  }
+
+  /** Stage only a validated session identity and a short display basename. */
+  stageProjectLabels(labels:Map<string,string|null>){
+    if(!this.scanOpen)throw new Error('No scan transaction is open');
+    const statement=this.db.prepare('INSERT OR REPLACE INTO temp.scan_project_labels VALUES(?,?)');
+    for(const [id,label] of labels){
+      if(!isIdentity(id)||!(label===null||isProjectLabel(label)))throw new Error('Invalid project label');
+      statement.run(id,label);
+    }
   }
 
   /** Persist one bounded batch inside the active scan transaction. */
@@ -157,8 +200,18 @@ export class Store {
         await yieldToEventLoop();if(cancelled())throw new Error('Scan cancelled');
       }
       if(cancelled())throw new Error('Scan cancelled');
+      const labelRows=this.db.prepare('SELECT id,label FROM temp.scan_project_labels').iterate() as Iterable<{id:string;label:string|null}>;
+      const labelChanges=new Map<string,string|null>();
+      const setLabel=this.db.prepare('INSERT OR REPLACE INTO project_labels VALUES(?,?)');
+      const clearLabel=this.db.prepare('DELETE FROM project_labels WHERE id=?');
+      for(const row of labelRows){
+        if(row.label===null)clearLabel.run(row.id);else setLabel.run(row.id,row.label);
+        labelChanges.set(row.id,row.label);
+      }
+      if(cancelled())throw new Error('Scan cancelled');
       this.db.exec('COMMIT');this.scanOpen=false;
-      return result;
+      for(const [id,label] of labelChanges){if(label===null)this.projectLabelCache.delete(id);else this.projectLabelCache.set(id,label);}
+      return this.decorateSessions(result);
     }catch(error){
       try{this.rollbackScan();}catch{}
       throw error;
@@ -191,7 +244,7 @@ export class Store {
   clear(preferences: Preferences) {
     if(this.scanOpen)throw new Error('Cannot clear the cache during a scan');
     this.db.exec('BEGIN');
-    try { this.db.exec('DELETE FROM sessions; DELETE FROM seen; DELETE FROM observations;'); this.set('preferences', preferences); this.db.exec('COMMIT'); }
+    try { this.db.exec('DELETE FROM sessions; DELETE FROM seen; DELETE FROM observations; DELETE FROM project_labels;'); this.set('preferences', preferences); this.db.exec('COMMIT');this.projectLabelCache.clear(); }
     catch(e) { this.db.exec('ROLLBACK'); throw e; }
     // secure_delete=ON overwrites deleted pages. Avoid a post-commit VACUUM
     // failure that would report a successful clear as though it had rolled back.

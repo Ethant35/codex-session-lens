@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test';
 import {writeFile} from 'node:fs/promises';
-import {launchLens,addSession,appendTokenCount,record} from './helpers';
+import {LIFECYCLE_EXIT_TIMEOUT_MS,launchLens,addSession,appendTokenCount,record} from './helpers';
 
 test('SL-08 additional: an in-place rewrite that grows the file replays safely',async()=>{
   const run=await launchLens();
@@ -38,12 +38,14 @@ test('SL-15: background main-process failures exit nonzero and keep raw errors p
  try{
   const child=run.app.process();let stderr='';
   child.stderr?.setEncoding('utf8');
-  child.stderr?.on('data',chunk=>{stderr+=chunk.toString();});
+  child.stderr?.on('data',chunk=>{
+   stderr+=chunk.toString();
+  });
   const exited=new Promise<number|null>(resolve=>child.once('exit',code=>resolve(code)));
   await run.app.evaluate(()=>{setTimeout(()=>{throw new Error('LENS_SYNTHETIC_BACKGROUND_FAILURE');},20);});
   let timer:ReturnType<typeof setTimeout>;
   try{
-   const code=await Promise.race([exited,new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new Error('Background failure did not exit')),5000);})]);
+   const code=await Promise.race([exited,new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new Error(`Background failure did not exit within ${LIFECYCLE_EXIT_TIMEOUT_MS} ms`)),LIFECYCLE_EXIT_TIMEOUT_MS);})]);
    expect(code).toBe(1);
    expect(stderr).toContain('Session Lens stopped after an unexpected local error.');
    expect(stderr).not.toContain('LENS_SYNTHETIC_BACKGROUND_FAILURE');

@@ -34,7 +34,7 @@ export class CacheHost {
     if (this.service) return this.service.snapshot();
     return { sessions: [], recovery: this.recovery, preferences: {
       theme: 'system', compact: false, alwaysOnTop: false, directories: [...this.directories],
-      selectedId: null, recentIds: [], paused: true, onboardingCompleted: true, sampleMode: false,
+      selectedId: null, recentIds: [], paused: true, onboardingCompleted: true, sampleMode: false, showProjectLabels: false,
     }, diagnostics: { files: 0, errors: 1, lastScan: null,
       messages: [this.recovery?.message ?? 'Cache unavailable.'], blockedRequests: 0 } };
   }

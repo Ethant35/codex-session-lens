@@ -1,5 +1,8 @@
 # Local acceptance
 
+Current 1.2.0 qualification is recorded in [docs/compact-release.md](docs/compact-release.md). Historical results below retain their original version and scope.
+
+
 The completed v1.0.1 local audit is recorded in [docs/patch-audit.md](docs/patch-audit.md). The historical v1.0.0 record follows.
 
 Author: Ethan

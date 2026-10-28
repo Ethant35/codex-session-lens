@@ -7,13 +7,13 @@ This guide covers the signed, notarized and stapled 1.1.0 Apple Silicon release.
 1. Download the Apple Silicon DMG for the released version and open it.
 2. Drag **Codex Session Lens** to Applications. Eject the mounted disk image, then open the app from Applications. If macOS reports that it cannot verify the app or says it is damaged, stop and confirm that the release and download are authentic. Do not bypass Gatekeeper.
 3. Review the suggested local Codex session folders. Keep them, add a folder with the native chooser, or skip setup and configure folders later in Settings. The app reads only the folders shown in setup/settings and leaves source files unchanged.
-4. Scan, then choose a session from the results. If you want a recognizable name, assign a private local alias to that observed session. The alias stays local and labels its stable session ID; it is not extracted from prompts and does not invent an identity. Without an alias, recognize it by the model, date and ID shown by the selector.
+4. Scan, then choose a session from the results. If you want a recognizable name, assign a private local alias to that observed session. The alias stays local and labels its stable session ID; it is not extracted from prompts and does not invent an identity. Without an alias, recognize it by model, date and ID. The optional Show project folder labels setting adds a folder basename from metadata. It is off by default, stores no full project path and never reads prompts for names. Folder labels can repeat, so check the session before selecting it. Disabling the setting deletes those labels.
 
 Setup is short and optional. You can skip it on first launch and replay it from Settings. The optional sample is synthetic and clearly labeled. It is kept separate from your real folders and telemetry.
 
 ## Use and return
 
-The HUD opens compact. Expand it when you need latest-request usage, metric provenance or compaction history. Your selected session, folders and display preferences persist between launches. A manually selected session stays selected; Session Lens cannot tell which conversation is currently foreground in Codex, so select another session when needed.
+The HUD opens compact with the selected session, cumulative input/output and last-request context visible. Open Details for latest-request usage, provenance, naming and compaction history. Expanded mode opens Details by default. Your selected session, folders and display preferences persist between launches. A manually selected session stays selected; Session Lens cannot tell which conversation is currently foreground in Codex, so select another session when needed.
 
 Token values are based on data observed in local Codex session files. Cumulative input and output counts are snapshots; cached input is a subset of input. A context figure, when available, estimates usage from the last request and its known limit. It does not show current context occupancy. Missing or conflicting evidence remains unavailable. The app does not read prompts to create titles.
 
@@ -33,6 +33,6 @@ For support, include app and macOS versions, the action, expected and actual beh
 
 ## Release verification status
 
-The exact final DMG and ZIP were uploaded to the draft GitHub release, downloaded and matched against post-staple SHA256SUMS.txt. Both passed Gatekeeper and ticket validation. The read-only DMG copy installed into a temporary Applications directory passed40 hidden tests, including first result, names/settings persistence, sample exit/replay, actual1.0.1 update/rollback, damaged-cache recovery and native shutdown. The normal installed app was preserved. Final hashes and submission IDs are in [readiness-evidence.json](readiness-evidence.json).
+Version 1.2.0 qualification is tracked in [compact-release.md](compact-release.md). The historical 1.1.0 verification record remains in [release-qualification.md](release-qualification.md). Checks use synthetic fixtures and isolated data; the normal installed app is preserved.
 
-The workflow is programmatic with synthetic fixtures and isolated data. The macOS folder chooser is mocked at its Electron boundary to keep dialogs hidden. No unfamiliar-user study, manual VoiceOver session, or human Finder drag-and-drop test occurred. These limits do not replace the observed signature, notarization, quarantine assessment and installed-app results.
+The macOS folder chooser is mocked at its Electron boundary to keep dialogs hidden. No unfamiliar-user study, manual VoiceOver session, or human Finder drag-and-drop test is claimed. Signature, notarization, quarantine assessment and installed-app checks are separate gates.

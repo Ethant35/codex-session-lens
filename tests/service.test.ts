@@ -1,9 +1,12 @@
 // Author: Ethan
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, rm, chmod } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import { DatabaseSync } from 'node:sqlite';
 import { Store } from '../src/main/store';
 import { LensService } from '../src/main/service';
@@ -46,6 +49,135 @@ test('compact mode is the default for fresh preferences', async t => {
   const { service } = await fixture(t);
   assert.equal(service.snapshot().preferences.compact, true);
   assert.deepEqual(service.snapshot().preferences.aliases, {});
+});
+
+test('project folder labels are opt-in, bounded basenames and clear atomically when disabled', async t => {
+  const { service, store, source, database } = await fixture(t);
+  const sourcePath=join(source,'real.jsonl');
+  const cwd='/private/PRIVATE_PROJECT_PATH_SENTINEL/Private Project';
+  const prompt='PRIVATE_MESSAGE_SENTINEL';
+  const header=JSON.stringify({timestamp:'2026-10-22T10:00:00Z',type:'session_meta',payload:{id:'real-session',cwd,prompt}})+'\n';
+  await writeFile(sourcePath,header);
+  const sourceHash=()=>createHash('sha256').update(readFileSync(sourcePath)).digest('hex');
+  const before=sourceHash();
+
+  await service.rescan();
+  assert.equal(service.snapshot().sessions.length,0,'fresh setup must not read source folders');
+  assert.equal((store as any).db.prepare('SELECT count(*) AS n FROM project_labels').get().n,0);
+  await service.preferences({onboardingCompleted:true});
+  assert.equal(service.snapshot().sessions[0].projectLabel,undefined);
+  assert.equal(store.get<any>('preferences').showProjectLabels,false);
+  assert.equal((store as any).db.prepare('SELECT count(*) AS n FROM project_labels').get().n,0);
+
+  await service.preferences({showProjectLabels:true});
+  assert.equal(service.snapshot().sessions.find(s=>s.id==='real-session')?.projectLabel,'Private Project');
+  assert.equal(service.snapshot().sessions.find(s=>s.id==='real-session')?.id,'real-session');
+  assert.equal((store as any).db.prepare('SELECT label FROM project_labels WHERE id=?').get('real-session').label,'Private Project');
+  const dbBytes=await readFile(database);
+  assert.equal(dbBytes.includes(Buffer.from(cwd)),false,'full source path must not enter the cache');
+  assert.equal(dbBytes.includes(Buffer.from(prompt)),false,'source payload text must not enter the cache');
+  assert.equal(sourceHash(),before,'the source JSONL is read-only');
+
+  await service.close();
+  const reopenedStore=new Store(database),reopened=new LensService(reopenedStore,[source]);
+  try {
+    assert.equal(reopened.snapshot().sessions.find(s=>s.id==='real-session')?.projectLabel,'Private Project');
+    await reopened.rescan();
+    assert.equal(reopened.snapshot().sessions.find(s=>s.id==='real-session')?.projectLabel,'Private Project');
+    await reopened.preferences({showProjectLabels:false});
+    assert.equal(reopened.snapshot().sessions.find(s=>s.id==='real-session')?.projectLabel,undefined);
+    assert.equal((reopenedStore as any).db.prepare('SELECT count(*) AS n FROM project_labels').get().n,0);
+    assert.equal(reopenedStore.get<any>('preferences').showProjectLabels,false);
+    assert.equal(sourceHash(),before);
+  } finally { await reopened.close(); }
+
+  const disabledStore=new Store(database),disabled=new LensService(disabledStore,[source]);
+  try {
+    assert.equal(disabled.snapshot().sessions.find(s=>s.id==='real-session')?.projectLabel,undefined);
+    assert.equal((disabledStore as any).db.prepare('SELECT count(*) AS n FROM project_labels').get().n,0);
+  } finally { await disabled.close(); }
+});
+
+test('project labels reject unsafe paths and omit ambiguous duplicate session folders', async t => {
+  const {service,source}=await fixture(t);
+  const row=(id:string,cwd:string)=>JSON.stringify({timestamp:'2026-10-22T10:01:00Z',type:'session_meta',payload:{id,cwd}})+'\n';
+  await writeFile(join(source,'windows.jsonl'),row('windows-session','C:\\\\Users\\\\ethan\\\\Project Cedar'));
+  await writeFile(join(source,'root.jsonl'),row('root-session','/'));
+  await writeFile(join(source,'relative.jsonl'),row('relative-session','not a project path'));
+  await writeFile(join(source,'bidi.jsonl'),row('bidi-session',`/private/Hidden${String.fromCharCode(0x202e)}exe/Unsafe`));
+  await writeFile(join(source,'duplicate-a.jsonl'),row('duplicate-session','/work/Project A'));
+  await writeFile(join(source,'duplicate-b.jsonl'),row('duplicate-session','/work/Project B'));
+  const emojiLabel=Array.from({length:64},()=>String.fromCodePoint(0x1f680)).join('');
+  await writeFile(join(source,'emoji.jsonl'),row('emoji-session',`/work/${emojiLabel}`));
+  await writeFile(join(source,'identity-conflict.jsonl'),row('conflicted-session','/work/Should Not Appear')+
+    JSON.stringify({timestamp:'2026-10-22T10:01:01Z',type:'session_meta',payload:{id:'different-session',cwd:'/work/Other'}})+'\n');
+  try {
+    await service.preferences({onboardingCompleted:true,showProjectLabels:true});
+    const labels=new Map(service.snapshot().sessions.map(s=>[s.id,s.projectLabel]));
+    assert.equal(labels.get('windows-session'),'Project Cedar');
+    assert.equal(labels.get('root-session'),undefined);
+    assert.equal(labels.get('relative-session'),undefined);
+    assert.equal(labels.get('bidi-session'),undefined);
+    assert.equal(labels.get('duplicate-session'),undefined);
+    assert.equal(labels.get('conflicted-session'),undefined);
+    assert.equal(labels.get('emoji-session'),emojiLabel);
+  } finally { await service.close(); }
+});
+
+test('an unreadable conflicting source withholds project labels without discarding sessions', async t => {
+  const {service,source}=await fixture(t);
+  const row=(cwd:string)=>JSON.stringify({timestamp:'2026-10-22T10:00:00Z',type:'session_meta',payload:{id:'real-session',cwd}})+'\n';
+  const duplicate=join(source,'duplicate.jsonl');
+  await writeFile(join(source,'real.jsonl'),row('/tmp/First'));
+  await writeFile(duplicate,row('/tmp/Second'));
+  await service.preferences({onboardingCompleted:true,showProjectLabels:true});
+  assert.equal(service.snapshot().sessions[0].projectLabel,undefined);
+  await chmod(duplicate,0);
+  try{
+    await service.rescan();
+    assert.equal(service.snapshot().sessions[0].id,'real-session');
+    assert.equal(service.snapshot().sessions[0].projectLabel,undefined);
+    assert.ok(service.snapshot().diagnostics.errors>0);
+  }finally{await chmod(duplicate,0o600);}
+  await writeFile(duplicate,row('/tmp/First'));
+  await service.rescan();
+  assert.equal(service.snapshot().sessions[0].projectLabel,'First');
+});
+
+test('corrupt cached project labels fail with a fixed sanitized cache error', async t => {
+  const root=await mkdtemp(join(tmpdir(),'lens-corrupt-project-label-'));
+  const database=join(root,'telemetry.sqlite');
+  t.after(()=>rm(root,{recursive:true,force:true}));
+  new Store(database).close();
+  const raw=new DatabaseSync(database);
+  raw.prepare('INSERT INTO project_labels VALUES(?,?)').run('real-session','/private/path');
+  raw.close();
+  assert.throws(()=>new Store(database),error=>{
+    assert.equal((error as Error).name,'SyntaxError');
+    assert.equal((error as Error).message,'Invalid cached project label');
+    assert.equal((error as Error).message.includes('/private/path'),false);
+    return true;
+  });
+});
+
+test('a rewritten or mixed-identity source clears its prior project label', async t => {
+  const {service,source,store}=await fixture(t);
+  const file=join(source,'real.jsonl');
+  const row=(id:string,cwd:string)=>JSON.stringify({timestamp:'2026-10-22T10:00:00Z',type:'session_meta',payload:{id,cwd}})+'\n';
+  await writeFile(file,row('real-session','/work/Before'));
+  try {
+    await service.preferences({onboardingCompleted:true,showProjectLabels:true});
+    assert.equal(service.snapshot().sessions.find(s=>s.id==='real-session')?.projectLabel,'Before');
+    await writeFile(file,row('real-session','/work/Before')+row('another-id','/work/Other'));
+    await service.rescan();
+    assert.equal(service.snapshot().sessions.find(s=>s.id==='real-session')?.projectLabel,undefined);
+    assert.equal((store as any).db.prepare('SELECT count(*) AS n FROM project_labels WHERE id=?').get('real-session').n,0);
+
+    await writeFile(file,'not-json anymore\n');
+    await service.rescan();
+    assert.equal(service.snapshot().sessions.find(s=>s.id==='real-session')?.projectLabel,undefined);
+    assert.equal((store as any).db.prepare('SELECT count(*) AS n FROM project_labels WHERE id=?').get('real-session').n,0);
+  } finally { await service.close(); }
 });
 
 test('session aliases are private labels, validated, and survive a service restart', async t => {

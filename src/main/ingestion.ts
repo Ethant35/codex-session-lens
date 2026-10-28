@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { constants } from 'node:fs';
 import { open, readdir } from 'node:fs/promises';
-import { basename, join } from 'node:path';
+import { basename, join, isAbsolute, win32 } from 'node:path';
 import { StringDecoder } from 'node:string_decoder';
 import type { Session, Usage, Provenance } from '../shared';
 import { Store } from './store';
@@ -13,9 +13,19 @@ const identity = (v: unknown): v is string => typeof v === 'string' && /^[a-zA-Z
 const usage = (v: any): Usage | null => v && integer(v.input_tokens) && integer(v.output_tokens) && integer(v.cached_input_tokens) && v.cached_input_tokens <= v.input_tokens ? { input: v.input_tokens, output: v.output_tokens, cached: v.cached_input_tokens } : null;
 const timestamp = (v: unknown): string | null => typeof v === 'string' && Number.isFinite(Date.parse(v)) ? new Date(v).toISOString() : null;
 const MAX_LINE = 8 * 1024 * 1024;
+const MAX_LABEL_HEADER = 1024 * 1024;
 const SCAN_BATCH_SIZE=128;
 const yieldToEventLoop=()=>new Promise<void>(resolve=>setImmediate(resolve));
 class ScanWriteError extends Error { constructor(readonly cause:unknown){super('Scan write failed');} }
+
+function projectFolderLabel(value:unknown):string|null{
+  if(typeof value!=='string'||!value.length||value.length>4096||/[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/u.test(value))return null;
+  if(!isAbsolute(value)&&!win32.isAbsolute(value))return null;
+  const trimmed=value.replace(/[\\/]+$/u,'');
+  const label=trimmed.split(/[\\/]/u).at(-1)?.trim()??'';
+  if(!label||label==='.'||label==='..'||/[:\\/]/u.test(label))return null;
+  return Array.from(label).slice(0,64).join('');
+}
 
 export class Ingestor {
   sessions = new Map<string, Session>();
@@ -27,8 +37,14 @@ export class Ingestor {
   private stopped = false;
   private batch:Observation[]=[];
   stop() { this.stopped = true; }
-  constructor(private store: Store) { for (const s of store.sessions()) this.sessions.set(s.id, s); }
+  constructor(private store: Store, private projectLabelsEnabled:()=>boolean=()=>false) { for (const s of store.sessions()) this.sessions.set(s.id, s); }
   reset() { this.sessions.clear(); this.batch=[]; this.cursors.clear(); this.errors.clear(); this.files = 0; this.lastScan = null; }
+  clearProjectLabels(){
+    for(const [id,session] of this.sessions){
+      const {projectLabel:_stale,...withoutLabel}=session;
+      this.sessions.set(id,withoutLabel);
+    }
+  }
   private error(key: string, message: string) { if (this.errors.size < 500) this.errors.set(key, message); }
   scan(roots: string[]): Promise<void> {
     if (this.stopped) return Promise.resolve();
@@ -42,9 +58,11 @@ export class Ingestor {
     let committed=false;
     try{
     const files = new Set<string>();
+    const projectLabels=new Map<string,string|null>();
+    let incompleteSources=false;
     const walk = async (root: string, depth = 0) => {
       if(this.stopped)return;
-      if (depth > 20) { this.error(root, 'Directory nesting exceeds supported depth.'); return; }
+      if (depth > 20) { incompleteSources=true; this.error(root, 'Directory nesting exceeds supported depth.'); return; }
       try {
         const entries = await readdir(root, { withFileTypes: true });
         this.errors.delete(`root:${root}`);
@@ -54,14 +72,21 @@ export class Ingestor {
           if (e.isDirectory()) await walk(join(root, e.name), depth + 1);
           else if (e.isFile() && e.name.endsWith('.jsonl')) files.add(join(root, e.name));
         }
-      } catch { this.error(`root:${root}`, 'A configured directory is unavailable or unreadable.'); }
+      } catch { incompleteSources=true; this.error(`root:${root}`, 'A configured directory is unavailable or unreadable.'); }
     };
     for (const root of roots) await walk(root);
     this.files = files.size;
     for (const path of files) {
       if (this.stopped) break;
-      try { await this.read(path); } catch (error) {
+      try {
+        const candidates=await this.read(path);
+        if(this.projectLabelsEnabled())for(const candidate of candidates){
+          if(!projectLabels.has(candidate.id))projectLabels.set(candidate.id,candidate.label);
+          else if(projectLabels.get(candidate.id)!==candidate.label)projectLabels.set(candidate.id,null);
+        }
+      } catch (error) {
         if(error instanceof ScanWriteError)throw error;
+        incompleteSources=true;
         this.cursors.delete(path);
         this.error(`read:${path}`, 'A telemetry file could not be read; retained prior data.');
       }
@@ -70,6 +95,15 @@ export class Ingestor {
     if(!this.stopped){
       await this.flushBatch();
       if(!this.stopped){
+        if(this.projectLabelsEnabled()){
+          // A failed source can conceal a conflicting identity or folder. Keep
+          // accounting, but withhold hints until all configured sources can be read.
+          if(incompleteSources){
+            for(const id of this.sessions.keys())projectLabels.set(id,null);
+            for(const id of projectLabels.keys())projectLabels.set(id,null);
+          }
+          this.store.stageProjectLabels(projectLabels);
+        }
         const saved=await this.store.commitScan(()=>this.stopped);
         for(const s of saved)this.sessions.set(s.id,s);
         committed=true;
@@ -90,7 +124,7 @@ export class Ingestor {
     try{this.store.stageScan(batch);}catch(error){throw new ScanWriteError(error);}
     await yieldToEventLoop();
   }
-  private async read(path: string) {
+  private async read(path: string):Promise<{id:string;label:string|null}[]> {
     // Open one stable, nonblocking, no-follow handle. The pathname can change
     // after discovery; all identity checks, anchor reads, and stream reads use
     // this same descriptor.
@@ -98,6 +132,18 @@ export class Ingestor {
     try{
     const info=await file.stat();
     if(!info.isFile())throw new Error('Telemetry source is not a regular file');
+    const previousId=this.cursors.get(path)?.id??null;
+    const projectCandidate=this.projectLabelsEnabled()?await this.readProjectHeader(file,info.size):null;
+    const labelUpdates=(cursor:Cursor|undefined):{id:string;label:string|null}[]=>{
+      if(!this.projectLabelsEnabled())return [];
+      const updates:{id:string;label:string|null}[]=[];
+      if(previousId&&(!projectCandidate||projectCandidate.id!==previousId))updates.push({id:previousId,label:null});
+      if(projectCandidate){
+        const valid=!!cursor&&!cursor.identityConflict&&cursor.id===projectCandidate.id;
+        updates.push({id:projectCandidate.id,label:valid?projectCandidate.label:null});
+      }
+      return updates;
+    };
     let cursor = this.cursors.get(path);
     let rewritten = false;
     if (cursor && cursor.offset > 0 && info.size >= cursor.offset && cursor.anchor.length) {
@@ -109,7 +155,7 @@ export class Ingestor {
       cursor = { offset: 0, inode: info.ino, modified: info.mtimeMs, tail: '', tailPending:false, decoder: new StringDecoder('utf8'), line: 0, id: null, forkedFromId:null, subagentHistoryStartOrdinal:null, identityConflict:false, dropping: false, anchor: Buffer.alloc(0) };
       this.cursors.set(path, cursor);
     }
-    if (info.size === cursor.offset) return;
+    if (info.size === cursor.offset) return labelUpdates(cursor);
     const stream = file.createReadStream({ start: cursor.offset, end: info.size - 1, highWaterMark: 64 * 1024, autoClose:false });
     for await (const chunk of stream) {
       if (this.stopped) break;
@@ -142,7 +188,26 @@ export class Ingestor {
     }
     if (cursor.tailPending || cursor.dropping) this.error(`tail:${path}`, 'Incomplete trailing record; waiting for the next append.');
     else this.errors.delete(`tail:${path}`);
+    return labelUpdates(cursor);
     }finally{await file.close();}
+  }
+  private async readProjectHeader(file:Awaited<ReturnType<typeof open>>,size:number):Promise<{id:string;label:string|null}|null>{
+    const parts:Buffer[]=[];let offset=0;let newline=-1;
+    while(offset<size&&offset<=MAX_LABEL_HEADER){
+      const part=Buffer.alloc(Math.min(4*1024,MAX_LABEL_HEADER+1-offset));
+      const {bytesRead}=await file.read(part,0,part.length,offset);
+      if(!bytesRead)break;
+      const chunk=part.subarray(0,bytesRead);const at=chunk.indexOf(10);
+      if(at>=0){parts.push(chunk.subarray(0,at));newline=offset+at;break;}
+      parts.push(chunk);offset+=bytesRead;
+    }
+    if(newline<0||newline>MAX_LABEL_HEADER)return null;
+    try{
+      const row=JSON.parse(Buffer.concat(parts,newline).toString('utf8'));
+      const payload=row?.payload;
+      if(row?.type!=='session_meta'||!identity(payload?.id)||!timestamp(row.timestamp))return null;
+      return {id:payload.id,label:projectFolderLabel(payload.cwd)};
+    }catch{return null;}
   }
   private consume(path: string, cursor: Cursor, line: string) {
     if (this.stopped) return;

@@ -1,7 +1,7 @@
 export interface Usage { input: number; output: number; cached: number; }
 export interface Provenance { file: string; line: number; event: string; timestamp: string; }
 export interface Session {
-  id: string; model: string | null; lastActivity: string; status: string;
+  id: string; model: string | null; lastActivity: string; status: string; projectLabel?: string;
   total: Usage | null; latest: Usage | null;
   context: { used: number; limit: number; percent: number; kind: 'estimate' } | null;
   compactions: { timestamp: string; provenance: Provenance }[];
@@ -12,7 +12,7 @@ export interface Session {
 export interface Preferences {
   theme: 'system' | 'light' | 'dark'; compact: boolean; alwaysOnTop: boolean;
   directories: string[]; selectedId: string | null; recentIds: string[]; paused: boolean;
-  onboardingCompleted?: boolean; sampleMode?: boolean; aliases?: Record<string, string>;
+  onboardingCompleted?: boolean; sampleMode?: boolean; aliases?: Record<string, string>; showProjectLabels?: boolean;
 }
 export interface Snapshot {
   recovery?: { message: string; canRebuild: boolean };

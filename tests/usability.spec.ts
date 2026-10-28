@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { addSession, appendTokenCount, closeLens, launchLens } from './helpers';
+import { addSession, appendTokenCount, closeLens, launchLens, record, rewriteSession } from './helpers';
 
 const screenshotDirectory = join(process.cwd(), '.local/usability-screens');
 async function capture(page: import('@playwright/test').Page, name: string) {
@@ -92,15 +92,16 @@ test('compact is the default, and manual local session names remain aliases of t
     await run.page.getByRole('button', { name: 'Expand display' }).click();
     await expect(run.page.getByText('Separate from cumulative session totals', { exact: true })).toBeVisible();
 
-    const naming = run.page.locator('details').filter({ hasText: /Name this session|Edit local name/ });
-    await naming.locator('summary').click();
+    const details = run.page.locator('details.summary-details');
+    if (!(await details.evaluate((node: HTMLDetailsElement) => node.open))) await details.locator(':scope > summary').click();
+    const naming = details.locator('details.local-name');
+    await naming.locator(':scope > summary').click();
     await naming.getByLabel('Local session name').fill('Work Mac');
     await naming.getByRole('button', { name: 'Save name' }).click();
     await expect(run.page.getByTestId('session-id')).toHaveText('recognizable-session');
     await expect(run.page.getByRole('heading', { name: 'Work Mac', exact: true })).toBeVisible();
     await expect(naming.getByLabel('Local session name')).toHaveValue('Work Mac');
     await run.page.getByRole('button', { name: 'Compact display', exact: true }).click();
-    await naming.locator('summary').click();
     await capture(run.page, 'compact-alias-populated');
     await run.page.getByRole('button', { name: 'Expand display', exact: true }).click();
     const search = run.page.getByLabel('Search sessions');
@@ -123,8 +124,10 @@ test('compact is the default, and manual local session names remain aliases of t
       await reopened.page.getByTestId('session-recognizable-session').click();
       await expect(reopened.page.getByTestId('session-id')).toHaveText('recognizable-session');
       await expect(reopened.page.getByRole('heading', { name: 'Work Mac', exact: true })).toBeVisible();
-      const reopenedNaming = reopened.page.locator('details.local-name');
-      await reopenedNaming.locator('summary').click();
+      const reopenedDetails = reopened.page.locator('details.summary-details');
+      if (!(await reopenedDetails.evaluate((node: HTMLDetailsElement) => node.open))) await reopenedDetails.locator(':scope > summary').click();
+      const reopenedNaming = reopenedDetails.locator('details.local-name');
+      await reopenedNaming.locator(':scope > summary').click();
       await expect(reopenedNaming.getByLabel('Local session name')).toHaveValue('Work Mac');
       expect((await reopened.page.evaluate(() => window.lens.snapshot())).preferences.aliases).toEqual({ 'recognizable-session': 'Work Mac' });
       expect(await reopened.page.evaluate(() => window.lens.snapshot().then(snapshot => snapshot.sessions.map(session => session.id)))).toContain('recognizable-session');
@@ -134,6 +137,137 @@ test('compact is the default, and manual local session names remain aliases of t
       const { rm } = await import('node:fs/promises');
       await rm(root, { recursive: true, force: true });
     }
+  } finally { await closeLens(run); }
+});
+
+test('compact metrics fit the default window and project folder labels require opt-in', async () => {
+  const run = await launchLens();
+  try {
+    const id = 'compact-project-session';
+    const path = await addSession(run.source, { id, model: 'gpt-6-luna', timestamp: new Date(Date.now() + 1_000).toISOString() });
+    const timestamp = (offset: number) => new Date(Date.now() + offset).toISOString();
+    await rewriteSession(path, [
+      record('session_meta', { id, cwd: '/tmp/synthetic-workspace/Project Cedar' }, timestamp(1)),
+      record('turn_context', { id, model: 'gpt-6-luna' }, timestamp(2)),
+      record('event_msg', { type: 'token_count', thread_id: id, info: {
+        total_token_usage: { input_tokens: 10_000, output_tokens: 1_500, cached_input_tokens: 2_000, total_tokens: 11_500 },
+        last_token_usage: { input_tokens: 2_000, output_tokens: 300, cached_input_tokens: 400, total_tokens: 2_300 },
+        model_context_window: 128_000,
+      } }, timestamp(3)),
+    ]);
+    await run.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setBounds({ x: 24, y: 32, width: 460, height: 650 }));
+    await run.page.getByRole('button', { name: 'Rescan sessions' }).click();
+    if (!(await run.page.locator('.session-picker').evaluate((node: HTMLDetailsElement) => node.open))) {
+      await run.page.locator('.session-picker > summary').click();
+    }
+    await run.page.getByTestId(`session-${id}`).click();
+    await expect(run.page.getByTestId('total-input')).toHaveText('10,000');
+    await expect(run.page.getByTestId('total-output')).toHaveText('1,500');
+    await expect(run.page.getByTestId('context-value')).toHaveText('2%');
+
+    const setting = run.page.getByLabel('Show project folder labels');
+    await run.page.getByRole('button', { name: 'Settings' }).click();
+    await expect(setting).not.toBeChecked();
+    await run.page.getByRole('button', { name: 'Settings' }).click();
+
+    const viewport = await run.page.evaluate(() => {
+      const rect = (selector: string) => {
+        const node = document.querySelector(selector);
+        if (!node) return null;
+        const bounds = node.getBoundingClientRect();
+        return { top: Math.floor(bounds.top), left: Math.floor(bounds.left), right: Math.ceil(bounds.right), bottom: Math.ceil(bounds.bottom) };
+      };
+      return { width: window.innerWidth, height: window.innerHeight, elements: {
+        name: rect('[data-testid="selected-session-name"]'),
+        inputLabel: rect('.metrics-grid > .metric:nth-child(1) .metric-label'),
+        input: rect('[data-testid="total-input"]'),
+        outputLabel: rect('.metrics-grid > .metric:nth-child(2) .metric-label'),
+        output: rect('[data-testid="total-output"]'),
+        contextLabel: rect('.context-label'), context: rect('[data-testid="context-value"]'),
+        contextNote: rect('[data-testid="context-note"]'), details: rect('.summary-details > summary'),
+      } };
+    });
+    for (const [key, bounds] of Object.entries(viewport.elements)) {
+      expect(bounds, `${key} should be present: ${JSON.stringify(viewport)}`).not.toBeNull();
+      expect(bounds!.top, `${key} should not be above the viewport`).toBeGreaterThanOrEqual(0);
+      expect(bounds!.left, `${key} should not be left of the viewport`).toBeGreaterThanOrEqual(0);
+      expect(bounds!.right, `${key} should not be clipped at the right edge`).toBeLessThanOrEqual(viewport.width);
+      expect(bounds!.bottom, `${key} should not be clipped at the bottom edge`).toBeLessThanOrEqual(viewport.height);
+    }
+    await capture(run.page, 'compact-priorities');
+    await appendTokenCount(path,id,{total:{input:12_000,output:1_800,cached:2_400},latest:{input:2_000,output:300,cached:400},contextWindow:128_000,timestamp:timestamp(10)});
+    await expect(run.page.getByTestId('total-input')).toHaveText('12,000',{timeout:5_000});
+    await expect(run.page.getByTestId('total-output')).toHaveText('1,800');
+    await expect(run.page.getByTestId('context-value')).toHaveText('2%');
+
+    await run.page.getByRole('button', { name: 'Settings' }).click();
+    await setting.click();
+    await expect(setting).toBeChecked();
+    await run.page.getByRole('button', { name: 'Settings' }).click();
+    await expect(run.page.getByTestId('selected-session-name')).toHaveText('Project Cedar');
+    await run.page.getByRole('button', { name: 'Expand display' }).click();
+    const details = run.page.locator('details.summary-details');
+    if (!(await details.evaluate((node: HTMLDetailsElement) => node.open))) await details.locator(':scope > summary').click();
+    await expect(run.page.getByTestId('session-id')).toHaveText(id);
+    await expect(run.page.getByTestId('total-cached')).toHaveText('2,400');
+    await expect(details).toContainText('Project folder · Project Cedar');
+    await run.page.getByRole('button', { name: 'Settings' }).click();
+    await expect(run.page.getByRole('checkbox', { name: 'Show project folder labels' })).toBeVisible();
+    await expect(run.page.getByRole('checkbox', { name: 'Show project folder labels' })).toBeChecked();
+    await setting.click();
+    await expect(setting).not.toBeChecked();
+    await run.page.getByRole('button',{name:'Settings'}).click();
+    await expect(run.page.getByTestId('selected-session-name')).not.toHaveText('Project Cedar');
+    expect((await run.page.evaluate(()=>window.lens.snapshot())).sessions.find(s=>s.id===id)?.projectLabel).toBeUndefined();
+    await closeLens(run,false);
+    const reopened=await launchLens(run.source,run.data);
+    try{
+      const state=await reopened.page.evaluate(()=>window.lens.snapshot());
+      expect(state.preferences.showProjectLabels).toBe(false);
+      expect(state.preferences.selectedId).toBe(id);
+      expect(state.sessions.find(s=>s.id===id)?.projectLabel).toBeUndefined();
+      await expect(reopened.page.getByTestId('total-input')).toHaveText('12,000');
+    }finally{await closeLens(reopened);}
+  } finally { await closeLens(run); }
+});
+
+test('compact HUD keeps unknown values explicit and wraps a long local session name', async () => {
+  const run = await launchLens();
+  try {
+    const id = `long-session-${'x'.repeat(90)}`;
+    const name = 'Long local name for legal research with a clear identity across many tasks';
+    await addSession(run.source, { id, model: '', timestamp: new Date(Date.now() + 1_000).toISOString() });
+    await run.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setBounds({ x: 24, y: 32, width: 460, height: 650 }));
+    await run.page.getByRole('button', { name: 'Rescan sessions' }).click();
+    if (!(await run.page.locator('.session-picker').evaluate((node: HTMLDetailsElement) => node.open))) {
+      await run.page.locator('.session-picker > summary').click();
+    }
+    await run.page.getByTestId(`session-${id}`).click();
+    await expect(run.page.getByTestId('total-input')).toHaveText('Unavailable');
+    await expect(run.page.getByTestId('total-output')).toHaveText('Unavailable');
+    await expect(run.page.getByTestId('context-value')).toHaveText('Unavailable');
+    await expect(run.page.getByTestId('context-note')).toHaveText('Estimate unavailable · occupancy unknown');
+    const details = run.page.locator('details.summary-details');
+    if (!(await details.evaluate((node: HTMLDetailsElement) => node.open))) await details.locator(':scope > summary').click();
+    const naming = details.locator('details.local-name');
+    if (!(await naming.evaluate((node: HTMLDetailsElement) => node.open))) await naming.locator(':scope > summary').click();
+    await naming.getByLabel('Local session name').fill(name);
+    await naming.getByRole('button', { name: 'Save name' }).click();
+    await expect(run.page.getByTestId('selected-session-name')).toHaveText(name);
+    const bounds = await run.page.getByTestId('selected-session-name').evaluate(node => {
+      const rect = node.getBoundingClientRect();
+      return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom,
+        width: rect.width, scrollWidth: node.scrollWidth, clientWidth: node.clientWidth, innerWidth: window.innerWidth, innerHeight: window.innerHeight };
+    });
+    expect(bounds.left).toBeGreaterThanOrEqual(0);
+    expect(bounds.right).toBeLessThanOrEqual(bounds.innerWidth);
+    expect(bounds.bottom).toBeLessThanOrEqual(bounds.innerHeight);
+    expect(bounds.scrollWidth).toBeLessThanOrEqual(bounds.clientWidth);
+    if (await details.evaluate((node: HTMLDetailsElement) => node.open)) await details.locator(':scope > summary').click();
+    await capture(run.page, 'compact-long-name-unknown-metrics');
+    await run.page.getByRole('button', { name: 'Expand display' }).click();
+    await expect(run.page.getByTestId('session-id')).toHaveText(id);
+    await expect(run.page.getByTestId('model')).toHaveText('Unavailable');
   } finally { await closeLens(run); }
 });
 
@@ -158,10 +292,12 @@ test('prototype-like IDs start unnamed, accept identical local aliases, and rema
       await expect(option).toBeVisible();
       await option.click();
       await expect(run.page.getByTestId('session-id')).toHaveText(id);
-      await expect(run.page.getByRole('heading', { name: 'Selected session', exact: true })).toBeVisible();
+      await expect(run.page.getByRole('heading', { name: 'gpt-6-luna', exact: true })).toBeVisible();
 
-      const naming = run.page.locator('details.local-name');
-      await naming.locator('summary').click();
+      const details = run.page.locator('details.summary-details');
+      if (!(await details.evaluate((node: HTMLDetailsElement) => node.open))) await details.locator(':scope > summary').click();
+      const naming = details.locator('details.local-name');
+      await naming.locator(':scope > summary').click();
       await naming.getByLabel('Local session name').fill('Local test chat');
       await naming.getByRole('button', { name: 'Save name' }).click();
       await expect(run.page.getByRole('heading', { name: 'Local test chat', exact: true })).toBeVisible();

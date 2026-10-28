@@ -119,7 +119,7 @@ function App() {
     const recentIds = prefs?.recentIds ?? [];
     return recentIds.map(id => sessions.find(session => session.id === id)).filter((s): s is Session => !!s);
   }, [prefs?.recentIds, sessions]);
-  const filtered = sorted.filter(session => `${localName(session) ?? ''} ${session.id} ${session.model ?? ''}`.toLowerCase().includes(query.trim().toLowerCase()));
+  const filtered = sorted.filter(session => `${localName(session) ?? ''} ${session.id} ${session.model ?? ''} ${prefs?.showProjectLabels ? session.projectLabel ?? '' : ''}`.toLowerCase().includes(query.trim().toLowerCase()));
   const children = selected ? sessions.filter(session => session.parentId === selected.id) : [];
   const showChildren = !!selected;
 
@@ -152,7 +152,6 @@ function App() {
       <div className="brand-mark" aria-hidden="true"><span /></div>
       <div className="brand-copy">
         <p className="brand-name">CODEX SESSION LENS</p>
-        <span className="connection"><i /> On this Mac</span>
       </div>
       <div className="top-actions">
         <button className="quiet-button" type="button" onClick={() => setSettingsOpen(value => !value)} aria-expanded={settingsOpen} aria-controls={snapshot ? 'settings-panel' : undefined}>
@@ -207,15 +206,15 @@ function App() {
     {snapshot && !snapshot.recovery && prefs?.onboardingCompleted !== false && <section id="session-selection" className="session-bar" aria-label="Session selection" tabIndex={-1}>
       <div className="session-heading">
         <div>
-          <h1>{selected ? localName(selected) ?? 'Selected session' : 'Select session'}</h1>
+          <h1 data-testid="selected-session-name">{selected ? localName(selected) ?? (prefs?.showProjectLabels ? selected.projectLabel : undefined) ?? selected.model ?? 'Selected session' : 'Select session'}</h1>
+          {selected && <p className="selected-session-meta">{selected.model ?? 'Model unavailable'} · {formatTime(selected.lastActivity)}{prefs?.showProjectLabels && localName(selected) && selected.projectLabel ? ` · ${selected.projectLabel}` : ''}</p>}
         </div>
       </div>
       <details className="session-picker" key={selected?.id ?? 'empty'} open={!selected}>
       <summary>Switch session</summary>
-      <p className="support-note">Choose by ID, model, and activity time, then add a local name. Selection stays fixed when you switch Codex chats.</p>
       <label className="search-box">
 
-        <input aria-label="Search sessions" type="search" placeholder="Search name, session ID, or model" value={query} onChange={event => setQuery(event.target.value)} />
+        <input aria-label="Search sessions" type="search" placeholder={prefs?.showProjectLabels ? 'Search name, folder, ID, or model' : 'Search name, session ID, or model'} value={query} onChange={event => setQuery(event.target.value)} />
         <kbd>⌘ K</kbd>
       </label>
       {recent.length > 0 && !query && <div className="recent-row" aria-label="Recent sessions">
@@ -226,7 +225,7 @@ function App() {
       </div>}
       <div className="session-list" aria-label="Available sessions">
         {filtered.map(session => <button key={session.id} type="button" aria-pressed={session.id === selected?.id} data-testid={`session-${session.id}`} className={`session-option ${session.id === selected?.id ? 'selected' : ''}`} onClick={() => void mutate(() => window.lens.select(session.id))}>
-          <span className="session-option-main"><span className="session-dot" /> <span className="session-option-model">{localName(session) ?? session.model ?? 'Unknown model'}</span></span>
+          <span className="session-option-main"><span className="session-dot" /> <span className="session-option-model">{localName(session) ?? (prefs?.showProjectLabels ? session.projectLabel : undefined) ?? session.model ?? 'Unknown model'}</span></span>
           <span className="session-option-meta">{localName(session) ? `${session.model ?? 'Unknown model'} · ` : ''}{session.id.slice(0, 12)} · {formatTime(session.lastActivity)}</span>
         </button>)}
         {filtered.length === 0 && <p className="list-empty">{sessions.length ? 'No sessions match that search.' : 'No sessions found yet.'}</p>}
@@ -235,59 +234,52 @@ function App() {
     </section>}
 
     {snapshot && !snapshot.recovery && prefs?.onboardingCompleted !== false && selected ? <>
-      <section className="summary-card" aria-label="Selected session details">
-        <div className="summary-head">
-          <div className="session-ident">
-
-            <div className="identity-text">
-              <span className="section-label">SESSION ID</span>
-              <h2 data-testid="session-id" title={selected.id}>{selected.id}</h2>
-            </div>
-          </div>
-          <div className="model-block"><span className="section-label">MODEL</span><strong data-testid="model">{selected.model ?? 'Unavailable'}</strong></div>
-          <div className="status-block"><span className="section-label">LAST OBSERVED</span><strong>{selected.status || 'Unavailable'}</strong><small>{formatTime(selected.lastActivity)}</small></div>
-        </div>
-        {!prefs?.sampleMode && <LocalName key={selected.id} name={localName(selected) ?? ''} save={label => mutate(() => window.lens.alias(selected.id, label))} busy={busy} />}
-        <p className="totals-label">Observed session totals</p>
+      <section className="summary-card" aria-label="Selected session metrics">
         <div className="metrics-grid">
-          <Metric label="Total input" value={selected.total?.input} testId="total-input" />
-          <Metric label="Total output" value={selected.total?.output} testId="total-output" />
-          <Metric label="Cached input · included in input" value={selected.total?.cached} testId="total-cached" />
-        </div>
-        <details className="request-details" open={!prefs?.compact}><summary>Request details</summary>
-        {selected.latest && <div className="latest-strip">
-          <div><span className="section-label">LATEST REQUEST</span><p>Separate from cumulative session totals</p></div>
-          <span>In <b>{number.format(selected.latest.input)}</b></span>
-          <span>Out <b>{number.format(selected.latest.output)}</b></span>
-          <span>Cached input <b>{number.format(selected.latest.cached)}</b></span>
-        </div>}
-        </details>
-        <div className="context-area">
-          <div className="context-heading"><div><span className="section-label">CONTEXT</span><p>Last request estimate</p></div>
-            {selected.context ? <strong className="context-value" data-testid="context-value">{number.format(selected.context.percent)}<small>%</small></strong> : <strong className="context-value unavailable" data-testid="context-value">Unavailable</strong>}
+          <Metric label="Input · session total" value={selected.total?.input} testId="total-input" />
+          <Metric label="Output · session total" value={selected.total?.output} testId="total-output" />
+          <div className="context-area">
+            <div className="context-heading"><span className="context-label">Context · last request</span>
+              {selected.context ? <strong className="context-value" data-testid="context-value">{number.format(selected.context.percent)}<small>%</small></strong> : <strong className="context-value unavailable" data-testid="context-value">Unavailable</strong>}
+            </div>
+            {selected.context ? <>
+              <div className="meter" role="img" aria-label={`Estimated context use ${selected.context.percent} percent`}><span style={{ width: `${Math.max(0, Math.min(100, selected.context.percent))}%` }} /></div>
+              <p className="context-note" data-testid="context-note">Estimate · {number.format(selected.context.used)} of {number.format(selected.context.limit)} · current occupancy unknown</p>
+            </> : <p className="context-note" data-testid="context-note">Estimate unavailable · occupancy unknown</p>}
           </div>
-          {selected.context ? <>
-            <div className="meter" role="img" aria-label={`Estimated context use ${selected.context.percent} percent`}><span style={{ width: `${Math.max(0, Math.min(100, selected.context.percent))}%` }} /></div>
-            <p className="context-note">{number.format(selected.context.used)} of {number.format(selected.context.limit)} tokens. Current context occupancy is unavailable.</p>
-          </> : <p className="context-note">No reliable last-request estimate. Current context occupancy is unavailable.</p>}
         </div>
-        <details className="metric-sources"><summary>Metric sources</summary>
-          {selected.provenance && <div><span className="section-label">Cumulative usage</span><Provenance {...selected.provenance} /></div>}
-          {Object.entries(selected.sources ?? {}).map(([metric,source]) => source && <div key={metric}><span className="section-label">{metric === 'latest' ? 'Latest request / context sample' : metric}</span><Provenance {...source} /></div>)}
+        {selected.warnings.length > 0 && <div className="warnings" role="status">{selected.warnings.map((warning, index) => <p key={`${index}-${warning}`}>{warning}</p>)}</div>}
+        <details className="summary-details" open={!prefs?.compact}><summary>Details</summary>
+          {!prefs?.sampleMode && <LocalName key={selected.id} name={localName(selected) ?? ''} save={label => mutate(() => window.lens.alias(selected.id, label))} busy={busy} />}
+          <div className="details-fields">
+            <div className="identity-text"><span className="section-label">SESSION ID</span><h2 data-testid="session-id" title={selected.id}>{selected.id}</h2></div>
+            <div className="model-block"><span className="section-label">MODEL</span><strong data-testid="model">{selected.model ?? 'Unavailable'}</strong></div>
+            <div className="status-block"><span className="section-label">STATUS</span><strong>{selected.status || 'Unavailable'}</strong><small>Last observed {formatTime(selected.lastActivity)}</small></div>
+          </div>
+          {prefs?.showProjectLabels && selected.projectLabel && <p className="project-label-note">Project folder · {selected.projectLabel}</p>}
+          <Metric label="Cached input · included in input" value={selected.total?.cached} testId="total-cached" />
+          {selected.latest && <div className="latest-strip">
+            <div><span className="section-label">LATEST REQUEST</span><p>Separate from cumulative session totals</p></div>
+            <span>In <b>{number.format(selected.latest.input)}</b></span>
+            <span>Out <b>{number.format(selected.latest.output)}</b></span>
+            <span>Cached input <b>{number.format(selected.latest.cached)}</b></span>
+          </div>}
+          <details className="metric-sources"><summary>Metric sources</summary>
+            {selected.provenance && <div><span className="section-label">Cumulative usage</span><Provenance {...selected.provenance} /></div>}
+            {Object.entries(selected.sources ?? {}).map(([metric,source]) => source && <div key={metric}><span className="section-label">{metric === 'latest' ? 'Latest request / context sample' : metric}</span><Provenance {...source} /></div>)}
+          </details>
+          <div className="details-grid">
+            {showChildren && <details className="detail-card" open={children.length > 0}>
+              <summary><span>Subagents</span><span className="detail-count">{children.length ? children.length : '—'}</span></summary>
+              {children.length ? <div className="detail-content">{children.map(child => <div className="child-row" key={child.id}><div><strong>{localName(child) ?? child.model ?? 'Unknown model'}</strong><small>{child.id}</small></div><span>{child.status}</span></div>)}</div> : <p className="detail-content subdued">Unavailable. No distinguishable child session was observed.</p>}
+            </details>}
+            <details className="detail-card">
+              <summary><span>Compaction history</span><span className="detail-count">{selected.compactions.length ? selected.compactions.length : '—'}</span></summary>
+              {selected.compactions.length ? <ol className="timeline">{selected.compactions.map((event, index) => <li key={`${event.timestamp}-${index}`}><span className="timeline-marker" /><div><strong>Context compacted</strong><small>{formatTime(event.timestamp)}</small><Provenance {...event.provenance} /></div></li>)}</ol> : <p className="detail-content subdued">No recorded compaction events for this session.</p>}
+            </details>
+          </div>
         </details>
-        {selected.warnings.length > 0 && <div className="warnings">{selected.warnings.map((warning, index) => <p key={`${index}-${warning}`}>{warning}</p>)}</div>}
       </section>
-
-      <div className="details-grid">
-        {showChildren && <details className="detail-card" open={children.length > 0}>
-          <summary><span>Subagents</span><span className="detail-count">{children.length ? children.length : '—'}</span></summary>
-          {children.length ? <div className="detail-content">{children.map(child => <div className="child-row" key={child.id}><div><strong>{localName(child) ?? child.model ?? 'Unknown model'}</strong><small>{child.id}</small></div><span>{child.status}</span></div>)}</div> : <p className="detail-content subdued">Unavailable. No distinguishable child session was observed.</p>}
-        </details>}
-        <details className="detail-card">
-          <summary><span>Compaction history</span><span className="detail-count">{selected.compactions.length}</span></summary>
-          {selected.compactions.length ? <ol className="timeline">{selected.compactions.map((event, index) => <li key={`${event.timestamp}-${index}`}><span className="timeline-marker" /><div><strong>Context compacted</strong><small>{formatTime(event.timestamp)}</small><Provenance {...event.provenance} /></div></li>)}</ol> : <p className="detail-content subdued">No recorded compaction events for this session.</p>}
-        </details>
-      </div>
     </> : snapshot && !snapshot.recovery && prefs?.onboardingCompleted !== false ? <section className="empty-card">
       <div className="empty-illustration" aria-hidden="true"><span /><span /><span /></div>
       <h2>{sessions.length ? 'Select a session' : 'No local sessions'}</h2>
@@ -301,7 +293,9 @@ function App() {
         <label className="field">Theme<select aria-label="Theme" value={prefs?.theme ?? 'system'} onChange={event => setPreference({ theme: event.target.value as Preferences['theme'] })}><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
         <label className="toggle-field"><input type="checkbox" checked={prefs?.alwaysOnTop ?? false} onChange={event => setPreference({ alwaysOnTop: event.target.checked })} />Always on top</label>
         <label className="toggle-field"><input type="checkbox" checked={prefs?.paused ?? false} onChange={event => setPreference({ paused: event.target.checked })} />Pause ingestion</label>
+        <label className="toggle-field"><input type="checkbox" aria-describedby="project-label-help" checked={prefs?.showProjectLabels ?? false} onChange={event => setPreference({ showProjectLabels: event.target.checked })} />Show project folder labels</label>
       </div>
+      <p id="project-label-help" className="setting-note">Stores local folder names from session metadata. Names may repeat.</p>
       <h3 className="folders-title">Session folders</h3>
       <FolderFields text={directoriesText} setText={editFolders} busy={busy} error={actionError} choose={() => void chooseFolders()} prefix="settings" />
       <div className="form-actions"><button type="button" className="primary-button" disabled={busy} onClick={() => { const directories = directoriesText.split('\n').map(item => item.trim()).filter(Boolean); void mutate(() => window.lens.preferences({ directories })).then(saved => { if (saved) setEditingDirectories(false); }); }}>Save directories</button>

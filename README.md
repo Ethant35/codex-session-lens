@@ -5,7 +5,7 @@ A local-first macOS companion HUD for individual Codex sessions. It keeps cumula
 
 ## Install
 
-[Download Session Lens 1.1.0 for Apple Silicon](https://github.com/Ethant35/codex-session-lens/releases/download/v1.1.0/Codex.Session.Lens-1.1.0-arm64.dmg). The app is Developer ID signed, Apple notarized and stapled. A ZIP and final checksums are on the [release page](https://github.com/Ethant35/codex-session-lens/releases/tag/v1.1.0).
+[Download Session Lens 1.2.0 for Apple Silicon](https://github.com/Ethant35/codex-session-lens/releases/download/v1.2.0/Codex.Session.Lens-1.2.0-arm64.dmg). The app is Developer ID signed, Apple notarized and stapled. A ZIP and final checksums are on the [release page](https://github.com/Ethant35/codex-session-lens/releases/tag/v1.2.0).
 
 Open the DMG and drag **Codex Session Lens** into Applications. Open the app, review the suggested Codex folders or use **Choose folders…**, then scan and select a session. Give it an optional private local name so you can find it again. Setup can be skipped or replayed; the sample is synthetic. See the [first-use, update and recovery guide](docs/usability-release.md). Stop if macOS reports a security warning; check the official release and checksums instead of bypassing Gatekeeper.
 
@@ -14,10 +14,9 @@ Requires Apple Silicon and a macOS version supported by Electron 45. Validated o
 ## Use
 
 - Search and select a session manually; Cmd+K focuses search. Selection is saved and never changed just because another session becomes active. A name you assign is a private local alias for that observed session ID, not a title read from its prompts. If there is no alias, identify sessions by model, date or ID.
-- Read cumulative input/output and cached input (a subset of input), with latest-request usage shown separately.
+- The compact HUD keeps the selected session, cumulative input/output and last-request context estimate in view. Open **Details** for identifiers, cached input, request usage and provenance, compaction history and child activity. Cached input is a subset of input.
 - Context is explicitly a last-request estimate when a complete sample and limit exist. Current effective occupancy is unavailable. Cumulative tokens are never used as context occupancy.
-- Expand compaction history and distinguishable child activity. Child metrics stay separate.
-- The HUD opens compact. Expand it when you need latest-request details, provenance, or compaction history. Settings controls theme, always-on-top, source folders, pause/resume, diagnostics, setup replay and Clear telemetry. Window size and position persist.
+- An optional **Show project folder labels** setting adds a local folder-name cue from session metadata. It is off by default; folder names are not unique session identities, and selection remains manual. Local aliases take priority. Disabling the setting clears stored folder labels. Settings also controls theme, always-on-top, source folders, pause/resume, diagnostics, setup replay and Clear telemetry. Window size and position persist.
 
 ## Telemetry sources and limits
 
