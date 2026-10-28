@@ -1,0 +1,5 @@
+interface:
+  display_name: "Verify Session Lens"
+  short_description: "Check isolated CLI and hidden app journeys"
+policy:
+  allow_implicit_invocation: false

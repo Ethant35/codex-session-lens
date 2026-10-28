@@ -5,22 +5,22 @@ import { mkdtemp, mkdir, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { expect, test } from '@playwright/test';
-import { addSession, appendTokenCount, closeLens, launchLens } from './helpers';
+import { addSession, appendTokenCount, closeLens, launchLens, LIFECYCLE_EXIT_TIMEOUT_MS } from './helpers';
 
-function waitForClose(child: ChildProcess, timeoutMs = 5_000) {
+function waitForExit(child: ChildProcess, timeoutMs = LIFECYCLE_EXIT_TIMEOUT_MS) {
   if (child.exitCode !== null || child.signalCode !== null) {
     return Promise.resolve({ code: child.exitCode, signal: child.signalCode });
   }
   return new Promise<{ code: number | null; signal: NodeJS.Signals | null }>((resolveClose, reject) => {
     const timer = setTimeout(() => {
-      child.off('close', onClose);
-      reject(new Error(`Session Lens did not close within ${timeoutMs} ms`));
+      child.off('exit', onExit);
+      reject(new Error(`Session Lens process did not exit within ${timeoutMs} ms`));
     }, timeoutMs);
-    const onClose = (code: number | null, signal: NodeJS.Signals | null) => {
+    const onExit = (code: number | null, signal: NodeJS.Signals | null) => {
       clearTimeout(timer);
       resolveClose({ code, signal });
     };
-    child.once('close', onClose);
+    child.once('exit', onExit);
   });
 }
 
@@ -67,7 +67,7 @@ test('an uncaught private error exits cleanly and stores only a sanitized fatal 
   child.stderr?.setEncoding('utf8');
   child.stderr?.on('data', chunk => { stderr += chunk; });
   try {
-    const exited = waitForClose(child);
+    const exited = waitForExit(child);
     await run.app.evaluate((_electron, privateSentinel: string) => {
       setTimeout(() => { throw new Error(privateSentinel); }, 20);
     }, sentinel);
@@ -133,7 +133,7 @@ test('native background SIGTERM waits for cache close and leaves an intact SQLit
     });
 
     // Direct spawn avoids Playwright's inspector, so code 0 proves the OS process exited normally.
-    const exited = waitForClose(child);
+    const exited = waitForExit(child);
     child.kill('SIGTERM');
     const result = await exited;
     expect(result).toEqual({ code: 0, signal: null });
@@ -154,8 +154,8 @@ test('native background SIGTERM waits for cache close and leaves an intact SQLit
   } finally {
     if (child && child.exitCode === null && child.signalCode === null) {
       child.kill('SIGTERM');
-      try { await waitForClose(child, 1_000); }
-      catch { child.kill('SIGKILL'); await waitForClose(child, 1_000).catch(() => undefined); }
+      try { await waitForExit(child, 1_000); }
+      catch { child.kill('SIGKILL'); await waitForExit(child, 1_000).catch(() => undefined); }
     }
     await rm(root, { recursive: true, force: true });
   }

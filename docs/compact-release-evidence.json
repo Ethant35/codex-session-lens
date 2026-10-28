@@ -1,0 +1,37 @@
+{
+  "author": "Ethan",
+  "version": "1.2.0",
+  "appAsarSha256": "e4dcc06a5dbfde76555af505f27f80121e34345fff58c80687c2d659491c62c5",
+  "artifacts": [
+    {
+      "name": "Codex.Session.Lens-1.2.0-arm64-mac.zip",
+      "sha256": "75fd5665c2dfe8e4574e26aa888904a7b5ed35ee4c2f5d0240e6bfbbb88de987",
+      "bytes": 122679970
+    },
+    {
+      "name": "Codex.Session.Lens-1.2.0-arm64.dmg",
+      "sha256": "c569006ad332a14c9c7106f52a89f96d46b393b22efcf27a442eefa3bb9c1617",
+      "bytes": 122233496
+    }
+  ],
+  "date": "2026-10-27",
+  "status": "qualified-awaiting-public-delivery",
+  "nodeTests": 55,
+  "cleanNodeTests": 55,
+  "identicalBuildOutputs": 6,
+  "installedTests": 43,
+  "installedFailures": 0,
+  "installedSkips": 0,
+  "installedRetries": 0,
+  "appSubmission": "7eaf200b-c65f-4588-9a9c-2be390257940",
+  "dmgSubmission": "b80ee534-e65f-4244-92fe-a50093f000c5",
+  "notarization": "Accepted",
+  "gatekeeper": "accepted",
+  "testedPlatform": "Apple Silicon/macOS 27.2",
+  "limits": [
+    "Native chooser dialog mocked",
+    "No manual VoiceOver listening",
+    "No unfamiliar-user study",
+    "Semgrep Community: 15 rule errors and 6 partial renderer parses"
+  ]
+}

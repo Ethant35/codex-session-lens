@@ -5,6 +5,11 @@ import { join, resolve } from 'node:path';
 import type {ChildProcess} from 'node:child_process';
 
 const processes=new WeakMap<ElectronApplication,ChildProcess>();
+const debuggerClosures=new WeakMap<ElectronApplication,Promise<void>>();
+// Signed Electron 45 on this host took 8.58 s to exit after SIGTERM and 10.36 s
+// after app.exit(1) while Playwright's inspector was attached; evidence is in
+// .local/verification-2026-10-27/{canonical-sigterm-postdeadline,signed-fatal-postdeadline}.json.
+export const LIFECYCLE_EXIT_TIMEOUT_MS=15_000;
 
 export interface LensRun {
   app: ElectronApplication;
@@ -89,6 +94,13 @@ export async function closeLens(run: LensRun, removeFiles = true): Promise<void>
   if (removeFiles) await rm(run.root, { recursive: true, force: true });
 }
 
+/** Disconnect Playwright's main-process inspector after an intentional fatal exit. */
+export function disconnectPlaywrightDebugger(app:ElectronApplication):Promise<void>{
+  let closing=debuggerClosures.get(app);
+  if(!closing){closing=app.close();debuggerClosures.set(app,closing);}
+  return closing;
+}
+
 const closedApps = new WeakSet<ElectronApplication>();
 async function stopApp(app: ElectronApplication): Promise<void> {
   if (closedApps.has(app)) return;
@@ -110,6 +122,9 @@ async function stopApp(app: ElectronApplication): Promise<void> {
       });
     } catch (error) {
       // A test may intentionally trigger a fatal main-process exit before cleanup runs.
+      // app.exit() terminates Electron, but Node waits for its attached inspector to
+      // detach. Closing the Playwright application releases that debugger connection.
+      await disconnectPlaywrightDebugger(app).catch(()=>undefined);
       await Promise.race([exited,new Promise<void>(resolve=>setTimeout(resolve,1000))]);
       if (child.exitCode === null && child.signalCode === null) throw error;
     }

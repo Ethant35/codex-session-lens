@@ -1,6 +1,8 @@
 # Production readiness
 Author: Ethan
-Qualified release:1.1.0. All supported-platform release gates passed. Publication is the final release action; the release page and its notes record live delivery status.
+Current candidate: **1.2.0**, not yet published. See [compact release qualification](compact-release.md). The 1.1.0 evidence below is historical and does not qualify changed source.
+
+Historical qualified release:1.1.0. All supported-platform release gates passed. Publication is the final release action; the release page and its notes record live delivery status.
 
 The revised app passed50 Node tests,40 hidden signed-package checks and40 checks from the downloaded DMG installation. Clean frozen install passed50 Node tests and produced6 byte-identical output files. Apple accepted both app and DMG submissions with no reported issues. App/DMG tickets and Gatekeeper passed, including the downloaded quarantined artifacts. See release-qualification.md and readiness-evidence.json for exact post-staple hashes and boundaries.
 Baseline:399d77dcc83da42baaa87b70b90a6e14088af939 / released1.0.1

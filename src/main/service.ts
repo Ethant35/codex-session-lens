@@ -4,8 +4,8 @@ import type { Preferences, Session, Snapshot } from '../shared';
 import { Ingestor } from './ingestion';
 import { Store } from './store';
 
-const editable = ['theme', 'compact', 'alwaysOnTop', 'paused', 'directories', 'onboardingCompleted', 'sampleMode'] as const;
-const booleans = ['compact', 'alwaysOnTop', 'paused', 'onboardingCompleted', 'sampleMode'] as const;
+const editable = ['theme', 'compact', 'alwaysOnTop', 'paused', 'directories', 'onboardingCompleted', 'sampleMode', 'showProjectLabels'] as const;
+const booleans = ['compact', 'alwaysOnTop', 'paused', 'onboardingCompleted', 'sampleMode', 'showProjectLabels'] as const;
 export class InvalidPreferencesError extends Error {}
 function patch(value: unknown): Partial<Preferences> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid preferences');
@@ -29,7 +29,7 @@ function aliases(value: unknown): Record<string, string> {
 }
 function preferences(saved: unknown, directories: string[]): Preferences {
   const defaults: Preferences = { theme: 'system', compact: true, alwaysOnTop: false,
-    directories, selectedId: null, recentIds: [], paused: false, onboardingCompleted: false, sampleMode: false, aliases: {} };
+    directories, selectedId: null, recentIds: [], paused: false, onboardingCompleted: false, sampleMode: false, aliases: {}, showProjectLabels: false };
   if (saved === null) return defaults;
   if (!saved || typeof saved !== 'object' || Array.isArray(saved)) throw new Error('Invalid saved preferences');
   const v = saved as Record<string, unknown>;
@@ -62,11 +62,13 @@ export class LensService {
     const saved = store.get('preferences');
     try { this.prefs = preferences(saved, directories); }
     catch { throw new InvalidPreferencesError('Saved preferences are invalid'); }
-    this.ingestor = new Ingestor(store);
+    // A stale opt-in value must never leak labels through an older disabled preference.
+    if (!this.prefs.showProjectLabels) store.clearProjectLabels();
+    this.ingestor = new Ingestor(store, () => this.prefs.showProjectLabels === true);
   }
   snapshot(): Snapshot {
     return structuredClone({
-      sessions: this.prefs.sampleMode ? [sample] : [...this.ingestor.sessions.values()].sort((a, b) => b.lastActivity.localeCompare(a.lastActivity)),
+      sessions: this.prefs.sampleMode ? [sample] : this.store.decorateSessions([...this.ingestor.sessions.values()].sort((a, b) => b.lastActivity.localeCompare(a.lastActivity))),
       preferences: this.prefs.sampleMode ? { ...this.prefs, selectedId: sample.id } : this.prefs,
       diagnostics: { errors: this.ingestor.errors.size, files: this.ingestor.files,
         lastScan: this.ingestor.lastScan, messages: [...new Set(this.ingestor.errors.values())], blockedRequests: 0 },
@@ -94,7 +96,8 @@ export class LensService {
     const changes = patch(value); // Copy before enqueue: the caller cannot change an accepted request.
     return this.enqueue(async () => {
       const next = { ...this.prefs, ...changes };
-      this.store.set('preferences', next);
+      this.store.savePreferences(next, changes.showProjectLabels === false);
+      if(changes.showProjectLabels===false)this.ingestor.clearProjectLabels();
       this.prefs = next;
       if (changes.directories !== undefined) this.ingestor.errors.clear();
       await this.scan();

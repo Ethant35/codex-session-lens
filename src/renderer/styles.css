@@ -326,3 +326,44 @@ input, textarea { caret-color: var(--teal-dark); }
 .request-details .latest-strip { display: flex; }
 .help-details p { margin: 8px 0; overflow-wrap: anywhere; }
 button, input, textarea, select { max-width: 100%; }
+
+/* Keep the requested HUD values in the first compact viewport. */
+.app-shell[data-compact="true"] { padding: 12px 24px; }
+.app-shell[data-compact="true"] .topbar { margin-bottom: 10px; }
+.app-shell[data-compact="true"] .session-bar { padding: 8px 12px; }
+.app-shell[data-compact="true"] .session-heading { align-items: center; gap: 8px; }
+.session-heading > div { min-width: 0; }
+.app-shell[data-compact="true"] .session-heading h1 { margin: 0; font-size: 17px; line-height: 1.2; }
+.selected-session-meta { margin: 3px 0 0; color: var(--muted); font-size: 12px; line-height: 1.25; }
+.app-shell[data-compact="true"] .summary-details > .local-name { margin: 2px 0 5px; }
+.app-shell[data-compact="true"] .summary-details > .local-name summary { min-height: 30px; padding: 4px 0; }
+.app-shell[data-compact="true"] .session-picker summary { padding-top: 5px; }
+.summary-card { margin-top: 8px; padding: 11px 14px; }
+.app-shell[data-compact="true"] .metrics-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(135px, 1.35fr); align-items: center; gap: 12px; padding: 4px 0 6px; }
+.app-shell[data-compact="true"] .metric { min-width: 0; padding: 2px 0; }
+.app-shell[data-compact="true"] .metric-label { font-size: 12px; line-height: 1.2; }
+.app-shell[data-compact="true"] .metric strong { font-size: 21px; line-height: 1.2; }
+.metrics-grid .metric strong { min-width: 0; overflow-wrap: anywhere; }
+.app-shell[data-compact="true"] .context-area { min-width: 0; margin: 0; padding: 0; border: 0; }
+.context-heading { margin: 0 0 3px; }
+.context-label { color: var(--muted); font-size: 12px; line-height: 1.2; }
+.context-heading .context-value { margin: 0; font-size: 23px; }
+.context-heading .context-value.unavailable { font-size: 13px; text-align: end; }
+.app-shell[data-compact="true"] .context-note { margin: 3px 0 0; font-size: 11px; line-height: 1.2; }
+.app-shell[data-compact="true"] .summary-details { margin-top: 3px; }
+.summary-details > summary { min-height: 30px; padding: 5px 0; color: var(--teal-dark); font-size: 13px; font-weight: 650; cursor: pointer; }
+.details-fields { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); }
+.details-fields .status-block { grid-column: 1 / -1; }
+.details-fields .identity-text h2 { overflow-wrap: anywhere; white-space: normal; }
+.detail-metrics { max-width: 180px; }
+.summary-details .latest-strip { margin-top: 8px; flex-wrap: wrap; }
+.summary-details .details-grid { grid-template-columns: minmax(0, 1fr); }
+.project-label-note, .setting-note { margin: 4px 0 8px; color: var(--muted); font-size: 13px; }
+.settings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.app-shell[data-compact="true"] .warnings { margin: 3px 0; padding: 6px 8px; }
+
+@media (max-width: 400px) {
+  .app-shell[data-compact="true"] { padding-inline: 12px; }
+  .app-shell[data-compact="true"] .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .app-shell[data-compact="true"] .context-area { grid-column: 1 / -1; }
+}

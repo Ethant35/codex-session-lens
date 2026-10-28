@@ -88,7 +88,7 @@ test('SL-05: cumulative token_count and overlapping usage records are not added 
     await expect(run.page.getByTestId('total-output')).toHaveText('300');
     await expect(run.page.getByTestId('total-cached')).toHaveText('500');
     await expect(run.page.getByText('Separate from cumulative session totals')).toBeVisible();
-    await expect(run.page.getByText('Last request estimate')).toBeVisible();
+    await expect(run.page.getByText('Context · last request')).toBeVisible();
     await expect(run.page.getByTestId('context-value')).toHaveText('Unavailable');
     await appendTokenCount(file, 'overlap-session', { ...counts, timestamp: t(3) });
     await expect(run.page.getByTestId('context-value')).toHaveText('22%');
@@ -122,11 +122,13 @@ test('SL-07: recorded compaction appears in the selected session timeline', asyn
     await appendTokenCount(other, 'uncompacted-session', { total: { input: 400, output: 90 }, latest: { input: 300, output: 80 }, timestamp: t(3) });
     await run.page.getByRole('button', { name: 'Rescan sessions' }).click();
     await select(run.page, 'compact-session');
+    const metricDetails = run.page.locator('details.summary-details');
+    if (!(await metricDetails.evaluate((node: HTMLDetailsElement) => node.open))) await metricDetails.locator(':scope > summary').click();
     await run.page.getByText('Compaction history').click();
     await expect(run.page.getByText('Context compacted')).toBeVisible();
     await expect(run.page.getByTestId('context-value')).toHaveText('Unavailable');
     await select(run.page, 'uncompacted-session');
-    const history=run.page.locator('details').filter({has:run.page.getByText('Compaction history',{exact:true})});
+    const history=run.page.locator('details.detail-card').filter({has:run.page.getByText('Compaction history',{exact:true})});
     if (!(await history.evaluate((node: HTMLDetailsElement)=>node.open))) await run.page.getByText('Compaction history').click();
     await expect(run.page.locator('.timeline')).toHaveCount(0);
     await expect(run.page.getByText('No recorded compaction events for this session.')).toBeVisible();
@@ -215,6 +217,8 @@ test('SL-10: distinguishable child sessions are attributed to the correct parent
     await appendTokenCount(child, 'child-session', { total: { input: 30, output: 5 }, latest: { input: 25, output: 4 }, timestamp: t(4) });
     await run.page.getByRole('button', { name: 'Rescan sessions' }).click();
     await select(run.page, 'parent-session');
+    const metricDetails = run.page.locator('details.summary-details');
+    if (!(await metricDetails.evaluate((node: HTMLDetailsElement) => node.open))) await metricDetails.locator(':scope > summary').click();
     await expect(run.page.getByText('Subagents')).toBeVisible();
     await expect(run.page.locator('.child-row').getByText('child-session')).toBeVisible();
     await expect(run.page.locator('.child-row').getByText('other-parent')).toHaveCount(0);
