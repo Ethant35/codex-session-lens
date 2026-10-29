@@ -17,3 +17,7 @@ Verified on local Node v22.13.1:
 The initial CLI-only check did not launch the UI, package, install, publish or call a model. Later candidate qualification is recorded in production-readiness.md. Computer use found no open error dialog; process inspection found only the normal installed app and its helpers. CLI results alone do not qualify UI behavior; the later hidden packaged suite supplies that evidence.
 
 Plain source/Markdown files do not support portable personal-author metadata. Their author comments are Ethan; package author remains Ethan.
+
+## Checkpoints
+
+The `checkpoint` command stores and compares the latest scanned observations in the separate CLI cache. See [commands and limits](checkpoints.md#cli). `tests/cli.test.mjs` checks restart, cumulative deltas, observed compactions, deletion, argument validation and source-content privacy without Electron.

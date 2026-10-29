@@ -60,7 +60,11 @@ export class ProjectionBuilder {
       if(!group.latest)group.latest={live:candidate(),legacy:candidate(),liveContext:candidate(),legacyContext:candidate()};
       const usageCandidate=o.legacy?group.latest.legacy:group.latest.live;
       const contextCandidate=o.legacy?group.latest.legacyContext:group.latest.liveContext;
-      add(usageCandidate,o.latest,o.provenance);add(contextCandidate,o.context??null,o.provenance);
+      add(usageCandidate,o.latest,o.provenance);
+      // The detailed usage record has no context-window field. It must not
+      // veto a matching token_count estimate emitted at the same timestamp.
+      // A group with only detailed records still invalidates the old estimate.
+      if (o.provenance.event !== 'token_usage_record' || o.context != null) add(contextCandidate,o.context??null,o.provenance);
     }
     if(o.compaction && !group.compact)group.compact=o.provenance;
     if(o.boundary||o.compaction)group.boundary=true;
@@ -102,12 +106,12 @@ export class ProjectionBuilder {
     const latestPair=group.latest;
     if(latestPair){
       const selected=latestPair.live.set?latestPair.live:latestPair.legacy;
-      const selectedContext=latestPair.liveContext.set?latestPair.liveContext:latestPair.legacyContext;
+      const selectedContext=latestPair.live.set?latestPair.liveContext:latestPair.legacyContext;
       if(selected.conflict){s.latest=null;s.context=null;delete s.sources!.latest;this.warn('Conflicting latest usage records share a timestamp. Latest usage is unavailable until newer evidence arrives.');}
       else{
         s.latest=selected.value as Usage|null;
-        s.context=s.latest&&!selectedContext.conflict?selectedContext.value as Session['context']:null;
-        if(s.latest)s.sources!.latest=selected.source;else delete s.sources!.latest;
+        s.context=s.latest&&selectedContext.set&&!selectedContext.conflict?selectedContext.value as Session['context']:null;
+        if(s.latest)s.sources!.latest=s.context?selectedContext.source:selected.source;else delete s.sources!.latest;
       }
     }
     if(group.compact)s.compactions.push({timestamp:this.timestamp,provenance:group.compact});

@@ -44,6 +44,7 @@ export class CacheHost {
   }
   async preferences(value: unknown) { return this.ready().preferences(value); }
   async alias(id: unknown, label: unknown) { return this.ready().alias(id, label); }
+  async checkpoint(action: unknown, sessionId: unknown, value: unknown) { return this.ready().checkpoint(action, sessionId, value); }
   async select(id: unknown) { return this.ready().select(id); }
   async clear() { return this.ready().clear(); }
   async rescan() { return this.service && !this.closed ? this.service.rescan() : this.snapshot(); }

@@ -68,6 +68,16 @@ function referenceProject(id: string, input: Observation[]): Session {
 
 function unique(values: unknown[]) { return values.every(value => JSON.stringify(value) === JSON.stringify(values[0])); }
 
+test('live detailed usage without a window cannot revive a same-time legacy context estimate', () => {
+  const old=observation(1,'legacy',{legacy:true,latest:usage(20,5,2),context:{used:25,limit:100,percent:25,kind:'estimate'}});
+  const live=observation(1,'live',{latest:usage(40,10,3)});
+  live.provenance={...live.provenance,event:'token_usage_record'};
+  for(const rows of [[old,live],[live,old]]){
+    const result=project('property-session',rows);
+    assert.deepEqual(result.latest,usage(40,10,3));assert.equal(result.context,null);
+  }
+});
+
 test('project is invariant under input order and matches an independent latest-evidence oracle', () => {
   const deltas = fc.array(fc.record({
     input: fc.integer({ min: 0, max: 5000 }),

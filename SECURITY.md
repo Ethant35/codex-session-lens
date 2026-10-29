@@ -9,7 +9,7 @@ Settings → Clear telemetry deletes the local telemetry observations, projected
 
 Renderer Node integration is disabled; context isolation, renderer sandboxing and web security are enabled. IPC checks sender identity and input shape. The native folder chooser returns only user-selected directory paths; persistence requires explicit Save. No arbitrary path reads are exposed to the renderer. Navigation, new windows, webviews, permissions and external requests are denied. There is no auto-updater or crash-upload configuration.
 
-Production 1.1.0 artifacts are Developer ID signed and Apple notarized, with stapled app and DMG tickets. Development packages from npm run package:mac remain unsigned by the distribution identity. Do not bypass Gatekeeper warnings; verify that the download came from the official repository release and matches its checksums.
+Published 1.2.0 artifacts are Developer ID signed and Apple notarized, with stapled app and DMG tickets. Development packages from npm run package:mac remain unsigned by the distribution identity. Do not bypass Gatekeeper warnings; verify that the download came from the official repository release and matches its checksums.
 
 Report security issues privately through the repository's GitHub security reporting channel if available. Otherwise contact the maintainer before posting sensitive details; do not include conversation logs or secrets in public issues.
 
@@ -19,3 +19,6 @@ Report security issues privately through the repository's GitHub security report
 Explicit cache rebuild moves the failed database and regular SQLite sidecars to a private `cache-backup-*` directory. Backups contain local telemetry and preferences and remain until the user removes them. Clear telemetry does not remove prior recovery backups or source logs. Quit before backing up or restoring the app data directory. See docs/operations.md.
 
 Local session names are user-entered labels stored only in the cache, keyed by observed IDs. They are never taken from prompts or uploaded. Names do not change source identities, counters or Codex chat titles. Clear or rebuild removes them; a retained recovery backup still contains its old names.
+
+
+Session checkpoints store only user-entered names, IDs, timestamps, baseline counters, compaction counts and coverage/selection flags. They do not retain source payloads or contact a server. They are part of the local unencrypted cache and any retained recovery backup. Clear telemetry in 1.3.0 deletes checkpoint rows; older versions cannot erase fields they do not know. Checkpoint commands in the CLI use a separate database. See docs/checkpoints.md.

@@ -1,13 +1,13 @@
 # Production readiness
 Author: Ethan
-Current candidate: **1.2.0**, not yet published. See [compact release qualification](compact-release.md). The 1.1.0 evidence below is historical and does not qualify changed source.
+Published release: **1.2.0**, verified from public downloads with 43 hidden checks and matching hashes, signatures and tickets. See [compact release qualification](compact-release.md). Current 1.3.0 checkpoint changes are under verification; see [checkpoint qualification](checkpoint-release.md). The 1.2.0 and 1.1.0 evidence does not qualify the changed source.
 
 Historical qualified release:1.1.0. All supported-platform release gates passed. Publication is the final release action; the release page and its notes record live delivery status.
 
 The revised app passed50 Node tests,40 hidden signed-package checks and40 checks from the downloaded DMG installation. Clean frozen install passed50 Node tests and produced6 byte-identical output files. Apple accepted both app and DMG submissions with no reported issues. App/DMG tickets and Gatekeeper passed, including the downloaded quarantined artifacts. See release-qualification.md and readiness-evidence.json for exact post-staple hashes and boundaries.
 Baseline:399d77dcc83da42baaa87b70b90a6e14088af939 / released1.0.1
 
-## Readiness matrix
+## Historical 1.1.0 readiness matrix
 | Area | Current proof | Remaining gate or limit |
 | --- | --- | --- |
 | Supported boundary | Local, single-user, offline Apple Silicon/macOS27.2; read-only uncompressed JSONL | Windows/Linux/Intel/remote/compressed sources unqualified; manual session selection |

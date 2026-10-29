@@ -1,8 +1,10 @@
 // Author: Ethan
 import { isAbsolute } from 'node:path';
+import { randomUUID } from 'node:crypto';
 import type { Preferences, Session, Snapshot } from '../shared';
 import { Ingestor } from './ingestion';
 import { Store } from './store';
+import { checkpointView, validName } from './checkpoints';
 
 const editable = ['theme', 'compact', 'alwaysOnTop', 'paused', 'directories', 'onboardingCompleted', 'sampleMode', 'showProjectLabels'] as const;
 const booleans = ['compact', 'alwaysOnTop', 'paused', 'onboardingCompleted', 'sampleMode', 'showProjectLabels'] as const;
@@ -70,6 +72,9 @@ export class LensService {
     return structuredClone({
       sessions: this.prefs.sampleMode ? [sample] : this.store.decorateSessions([...this.ingestor.sessions.values()].sort((a, b) => b.lastActivity.localeCompare(a.lastActivity))),
       preferences: this.prefs.sampleMode ? { ...this.prefs, selectedId: sample.id } : this.prefs,
+      checkpoints: this.prefs.sampleMode ? [] : this.store.checkpoints()
+        .filter(point => point.sessionId === this.prefs.selectedId)
+        .map(point => checkpointView(point, this.ingestor.sessions.get(point.sessionId), this.incompleteCoverage())),
       diagnostics: { errors: this.ingestor.errors.size, files: this.ingestor.files,
         lastScan: this.ingestor.lastScan, messages: [...new Set(this.ingestor.errors.values())], blockedRequests: 0 },
     });
@@ -82,6 +87,9 @@ export class LensService {
     });
     this.queue = result.catch(() => undefined);
     return result;
+  }
+  private incompleteCoverage(): boolean {
+    return this.ingestor.errors.size > 0 || this.prefs.paused || this.store.incompleteCoverage();
   }
   private async scan() {
     if (this.prefs.paused || !this.prefs.onboardingCompleted || this.prefs.sampleMode) return;
@@ -126,6 +134,27 @@ export class LensService {
     return this.enqueue(() => {
       const next = { ...this.prefs, paused: true, selectedId: null, recentIds: [], sampleMode: false, aliases: {} };
       this.store.clear(next); this.prefs = next; this.ingestor.reset();
+    });
+  }
+  checkpoint(action: unknown, sessionId: unknown, value: unknown): Promise<Snapshot> {
+    if (!['create','select','delete'].includes(action as string) || typeof value !== 'string') return Promise.reject(new Error('Invalid checkpoint action'));
+    if (action === 'create' && !validName(value)) return Promise.reject(new Error('Use a checkpoint name of 1–80 characters'));
+    return this.enqueue(() => {
+      if (this.prefs.sampleMode || typeof sessionId !== 'string' || !this.ingestor.sessions.has(sessionId)) throw new Error('Unknown session');
+      const session = this.ingestor.sessions.get(sessionId)!;
+      let points = this.store.checkpoints();
+      if (action === 'create') {
+        if (points.length >= 1000 || points.filter(point => point.sessionId === sessionId).length >= 20) throw new Error('Checkpoint limit reached');
+        points = points.map(point => point.sessionId === sessionId ? { ...point, selected: false } : point);
+        points.push({ id: randomUUID(), sessionId, name: value.trim(), createdAt: new Date().toISOString(),
+          total: session.total ? { ...session.total } : null, totalTimestamp: session.provenance?.timestamp ?? null,
+          compactions: session.compactions.length, incomplete: this.incompleteCoverage() || session.warnings.length > 0, selected: true });
+      } else {
+        if (!points.some(point => point.id === value && point.sessionId === sessionId)) throw new Error('Unknown checkpoint');
+        if (action === 'delete') points = points.filter(point => point.id !== value);
+        else points = points.map(point => point.sessionId === sessionId ? { ...point, selected: point.id === value } : point);
+      }
+      this.store.saveCheckpoints(points);
     });
   }
   saveBounds(value: { x: number; y: number; width: number; height: number }): Promise<Snapshot> {

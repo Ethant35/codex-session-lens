@@ -367,3 +367,13 @@ button, input, textarea, select { max-width: 100%; }
   .app-shell[data-compact="true"] .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .app-shell[data-compact="true"] .context-area { grid-column: 1 / -1; }
 }
+/* Author: Ethan. Checkpoint controls remain below the primary compact metrics. */
+.checkpoints { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 10px; min-width: 0; }
+.checkpoints summary { cursor: pointer; overflow-wrap: anywhere; }
+.checkpoints form { display: grid; gap: 8px; margin-block: 12px; }
+.checkpoints select { width: 100%; min-width: 0; }
+.checkpoint-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-block: 12px; }
+.checkpoint-grid .metric { min-width: 0; overflow-wrap: anywhere; }
+
+.checkpoints input { width: 100%; min-width: 0; border: 1px solid var(--line-strong); border-radius: 8px; padding: 8px 10px; background: var(--panel); color: var(--text); }
+.new-checkpoint { margin-top: 8px; }

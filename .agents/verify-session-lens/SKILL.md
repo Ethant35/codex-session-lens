@@ -55,7 +55,7 @@ Keep a unique evidence directory per run. The commands below use one named run; 
 ```sh
 mkdir -p .local/verification-2026-10-27
 npm test > .local/verification-2026-10-27/node.log 2>&1
-LENS_TEST_REPORT=.local/verification-2026-10-27/journeys.json ./node_modules/.bin/playwright test tests/acceptance.spec.ts tests/privacy.spec.ts tests/edge.spec.ts tests/order.spec.ts tests/onboarding-accessibility.spec.ts tests/lifecycle.spec.ts tests/operational-ui.spec.ts tests/usability.spec.ts --output=.local/verification-2026-10-27/artifacts
+LENS_TEST_REPORT=.local/verification-2026-10-27/journeys.json ./node_modules/.bin/playwright test tests/acceptance.spec.ts tests/privacy.spec.ts tests/edge.spec.ts tests/order.spec.ts tests/onboarding-accessibility.spec.ts tests/lifecycle.spec.ts tests/operational-ui.spec.ts tests/usability.spec.ts tests/checkpoints.spec.ts --output=.local/verification-2026-10-27/artifacts
 ```
 
 Run this single mapped feature first when proving the procedure itself:
@@ -68,7 +68,7 @@ Existing screenshot helpers also write `.local/usability-screens` and `.local/re
 
 The CLI reads only explicitly supplied sources and uses temporary cache storage by default. `tests/cli.test.mjs` checks source content/mtime, cleanup, replay and separation from the HUD cache. Backend service tests cover optional folder metadata and opt-out deletion. Use these observable side effects alongside the UI assertions.
 
-For update coverage, use `tests/upgrade-current.spec.ts` only with a retained, hidden-capable prior executable identified by `LENS_BASELINE_EXECUTABLE`; set `LENS_BASELINE_VERSION` to its verified version (1.0.1 or 1.1.0). The current version assertion must match package.json. Do not run `tests/migration.spec.ts`, which requires visible historical-app behavior, as part of this quiet workflow. If no baseline binary exists, record update verification as unavailable rather than recycling earlier results as a new pass.
+For update coverage, use `tests/upgrade-current.spec.ts` only with a retained, hidden-capable prior executable identified by `LENS_BASELINE_EXECUTABLE`; set `LENS_BASELINE_VERSION` to its verified version (1.0.1, 1.1.0 or 1.2.0). The current version assertion must match package.json. Do not run `tests/migration.spec.ts`, which requires visible historical-app behavior, as part of this quiet workflow. If no baseline binary exists, record update verification as unavailable rather than recycling earlier results as a new pass.
 
 Native chooser automation mocks only Electron's dialog boundary. It proves cancellation and Save semantics, not interaction with the macOS chooser. Preserve that limitation in results.
 

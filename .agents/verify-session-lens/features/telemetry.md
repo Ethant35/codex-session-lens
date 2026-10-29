@@ -17,3 +17,5 @@ tests/acceptance.spec.ts SL-03 appends counters and checks their rendered update
 ## Gotchas
 
 A fixture without required usage fields is not evidence of a parser bug. Cached input is a subset of input. Source hashes/content/mtime checks belong to CLI/service tests. Never modify real source files.
+
+The current paired-format regression in tests/core/ingestion.test.ts checks token_count and token_usage_record emitted at the same timestamp. Matching usage can use the complete context sample; conflicting usage or a later missing window stays unknown. tests/core/projection.test.ts prevents a legacy cache estimate from being reused by a live detailed record.

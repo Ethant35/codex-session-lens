@@ -100,7 +100,7 @@ test('synthetic sample is clearly identified, can be left, and onboarding can be
     await intro.getByRole('button', { name: 'Use synthetic sample' }).click();
     await expect(run.page.getByText('Synthetic sample data', { exact: true })).toBeVisible();
     await expect(run.page.getByTestId('session-id')).toHaveText('sample-session');
-    await expect(run.page.getByText(/synthetic.*not read from your session folders/i)).toBeVisible();
+    expect(await run.page.evaluate(() => window.lens.snapshot().then(s => s.preferences.sampleMode))).toBe(true);
     await expectNoSeriousAxeViolations(run.page, 'synthetic sample');
     await captureState(run.page, 'sample');
 

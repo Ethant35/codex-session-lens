@@ -1,6 +1,4 @@
 # codex-session-lens
-Live session telemetry and context tracking for Codex
-
 A local-first macOS companion HUD for individual Codex sessions. It keeps cumulative usage separate from latest-request usage and shows unknown values as unavailable. It is not affiliated with or endorsed by OpenAI.
 
 ## Install
@@ -12,6 +10,8 @@ Open the DMG and drag **Codex Session Lens** into Applications. Open the app, re
 Requires Apple Silicon and a macOS version supported by Electron 45. Validated on macOS 27.2; older macOS releases have not been tested. The acceptance environment is recorded in ACCEPTANCE.md. No account, backend, API key or network access is required by the HUD.
 
 ## Use
+
+Version 1.3.0 adds [session checkpoints](docs/checkpoints.md) in the HUD and CLI. Its release qualification is tracked separately from the published 1.2.0 artifacts.
 
 - Search and select a session manually; Cmd+K focuses search. Selection is saved and never changed just because another session becomes active. A name you assign is a private local alias for that observed session ID, not a title read from its prompts. If there is no alias, identify sessions by model, date or ID.
 - The compact HUD keeps the selected session, cumulative input/output and last-request context estimate in view. Open **Details** for identifiers, cached input, request usage and provenance, compaction history and child activity. Cached input is a subset of input.

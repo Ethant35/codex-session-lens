@@ -104,6 +104,7 @@ export class Ingestor {
           }
           this.store.stageProjectLabels(projectLabels);
         }
+        this.store.stageCoverage(this.errors.size > 0);
         const saved=await this.store.commitScan(()=>this.stopped);
         for(const s of saved)this.sessions.set(s.id,s);
         committed=true;

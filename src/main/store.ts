@@ -1,7 +1,8 @@
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync, chmodSync, lstatSync } from 'node:fs';
 import { dirname } from 'node:path';
-import type { Preferences, Session } from '../shared';
+import type { Checkpoint, Preferences, Session } from '../shared';
+import { parseCheckpoint } from './checkpoints';
 import {project,ProjectionBuilder,upgradeObservations,type Observation} from './projection';
 
 const projectionYieldRows=256;
@@ -66,6 +67,9 @@ export class Store {
   private closed = false;
   private scanOpen = false;
   private projectLabelCache=new Map<string,string>();
+  private checkpointCache: Checkpoint[] = [];
+  private coverageIncomplete = true;
+  private pendingCoverage: boolean | null = null;
   constructor(path: string) {
     mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
     try {
@@ -81,11 +85,27 @@ export class Store {
       CREATE TABLE IF NOT EXISTS settings(id TEXT PRIMARY KEY, value TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS observations(id TEXT PRIMARY KEY, session TEXT NOT NULL, value TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS project_labels(id TEXT PRIMARY KEY, label TEXT NOT NULL CHECK(length(label)<=64));
+      CREATE TABLE IF NOT EXISTS checkpoints(id TEXT PRIMARY KEY, value TEXT NOT NULL);
       CREATE INDEX IF NOT EXISTS observations_projection_v2 ON observations(session, CASE WHEN json_valid(value) THEN json_extract(value,'$.provenance.timestamp') ELSE '' END COLLATE BINARY, id COLLATE BINARY);
       DROP INDEX IF EXISTS observations_session;
       DROP INDEX IF EXISTS observations_projection;
       CREATE TEMP TABLE IF NOT EXISTS scan_sessions(id TEXT PRIMARY KEY);
       CREATE TEMP TABLE IF NOT EXISTS scan_project_labels(id TEXT PRIMARY KEY, label TEXT);`);
+    const checkpointRows = this.db.prepare('SELECT id,value FROM checkpoints LIMIT 1001').all() as {id:string;value:string}[];
+    if (checkpointRows.length > 1000) throw new SyntaxError('Too many saved checkpoints');
+    this.checkpointCache = checkpointRows.map(row => {
+      const value = parseCheckpoint(row.value);
+      if (value.id !== row.id) throw new SyntaxError('Invalid checkpoint identity');
+      return value;
+    });
+    const checkpointCounts = new Map<string, { count: number; selected: number }>();
+    for (const point of this.checkpointCache) {
+      const counts = checkpointCounts.get(point.sessionId) ?? { count: 0, selected: 0 };
+      counts.count++; if (point.selected) counts.selected++;
+      if (counts.count > 20 || counts.selected > 1) throw new SyntaxError('Invalid saved checkpoint selection');
+      checkpointCounts.set(point.sessionId, counts);
+    }
+    this.coverageIncomplete = this.get('scanCoverageIncomplete') !== false;
     for(const row of this.db.prepare('SELECT id,label FROM project_labels').all() as {id:string;label:string}[]){
       if(!isIdentity(row.id)||!isProjectLabel(row.label))throw new SyntaxError('Invalid cached project label');
       this.projectLabelCache.set(row.id,row.label);
@@ -139,6 +159,24 @@ export class Store {
   get<T>(id: string): T | null {
     const r = this.db.prepare('SELECT value FROM settings WHERE id=?').get(id) as {value:string} | undefined;
     return r ? JSON.parse(r.value) : null;
+  }
+  checkpoints(): Checkpoint[] { return structuredClone(this.checkpointCache); }
+  incompleteCoverage(): boolean { return this.coverageIncomplete; }
+  stageCoverage(incomplete: boolean) {
+    if (!this.scanOpen) throw new Error('No scan transaction is open');
+    this.set('scanCoverageIncomplete', incomplete); this.pendingCoverage = incomplete;
+  }
+  saveCheckpoints(points: Checkpoint[]) {
+    if (this.scanOpen) throw new Error('Cannot save a checkpoint during a scan');
+    if (points.length > 1000) throw new Error('Checkpoint limit reached');
+    const validated = points.map(point => parseCheckpoint(JSON.stringify(point)));
+    this.db.exec('BEGIN');
+    try {
+      this.db.exec('DELETE FROM checkpoints');
+      const insert = this.db.prepare('INSERT INTO checkpoints VALUES(?,?)');
+      for (const point of validated) insert.run(point.id, JSON.stringify(point));
+      this.db.exec('COMMIT'); this.checkpointCache = validated;
+    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
   }
   set(id: string, value: unknown) { this.db.prepare('INSERT OR REPLACE INTO settings VALUES(?,?)').run(id, JSON.stringify(value)); }
   has(id: string) { return !!this.db.prepare('SELECT 1 FROM seen WHERE id=?').get(id); }
@@ -210,6 +248,8 @@ export class Store {
       }
       if(cancelled())throw new Error('Scan cancelled');
       this.db.exec('COMMIT');this.scanOpen=false;
+      if(this.pendingCoverage!==null)this.coverageIncomplete=this.pendingCoverage;
+      this.pendingCoverage=null;
       for(const [id,label] of labelChanges){if(label===null)this.projectLabelCache.delete(id);else this.projectLabelCache.set(id,label);}
       return this.decorateSessions(result);
     }catch(error){
@@ -224,7 +264,7 @@ export class Store {
     catch(error){
       const message=(error as Error).message;
       if(!/no transaction is active/i.test(message))throw error;
-    }finally{this.scanOpen=false;}
+    }finally{this.scanOpen=false;this.pendingCoverage=null;}
   }
 
   save(observations:Observation[]):Session[] {
@@ -244,7 +284,7 @@ export class Store {
   clear(preferences: Preferences) {
     if(this.scanOpen)throw new Error('Cannot clear the cache during a scan');
     this.db.exec('BEGIN');
-    try { this.db.exec('DELETE FROM sessions; DELETE FROM seen; DELETE FROM observations; DELETE FROM project_labels;'); this.set('preferences', preferences); this.db.exec('COMMIT');this.projectLabelCache.clear(); }
+    try { this.db.exec('DELETE FROM sessions; DELETE FROM seen; DELETE FROM observations; DELETE FROM project_labels; DELETE FROM checkpoints;'); this.set('preferences', preferences); this.db.exec('COMMIT');this.projectLabelCache.clear();this.checkpointCache=[]; }
     catch(e) { this.db.exec('ROLLBACK'); throw e; }
     // secure_delete=ON overwrites deleted pages. Avoid a post-commit VACUUM
     // failure that would report a successful clear as though it had rolled back.

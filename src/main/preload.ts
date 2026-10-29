@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { LensAPI } from '../shared';
 const api: LensAPI = {
+  checkpoint: (action, sessionId, value) => ipcRenderer.invoke('lens:checkpoint', action, sessionId, value),
   chooseDirectories: () => ipcRenderer.invoke('lens:choose-directories'),
   alias: (id, label) => ipcRenderer.invoke('lens:alias', id, label),
   recover: action => ipcRenderer.invoke('lens:recover', action),

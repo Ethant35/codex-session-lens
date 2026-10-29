@@ -1,7 +1,7 @@
 # Architecture
 Author: Ethan
 
-Codex Session Lens is a companion HUD, not a native Codex extension. Electron was selected for supported real-app Playwright automation and native window controls; its bundled Node SQLite avoids a separately compiled database addon. Electron hosts a React renderer. TypeScript runs in both processes. A sandboxed preload exposes six narrow asynchronous operations. The renderer has no Node access, remote content, filesystem API, or general IPC interface. The main process checks the sender and validates preference inputs. Chromium requests outside the bundled renderer are blocked; the CSP disallows connections. There is no server, account integration, updater, analytics SDK, or credential reader.
+Codex Session Lens is a companion HUD, not a native Codex extension. Electron was selected for supported real-app Playwright automation and native window controls; its bundled Node SQLite avoids a separately compiled database addon. Electron hosts a React renderer. TypeScript runs in both processes. A sandboxed preload exposes narrow, named asynchronous operations. The renderer has no Node access, remote content, filesystem API, or general IPC interface. The main process checks the sender and validates preference inputs. Chromium requests outside the bundled renderer are blocked; the CSP disallows connections. There is no server, account integration, updater, analytics SDK, or credential reader.
 
 ## Data path
 Configured directories → recursive read-only JSONL discovery → incremental UTF-8 framing → allowlisted telemetry projection → SQLite → validated IPC → React.
@@ -45,3 +45,8 @@ LensService validates copied requests and publishes preferences only after stora
 CacheHost converts startup cache errors to an inline recovery state. Retry does not replace the cache. Known invalid/corrupt data can be moved into a private sibling backup directory only after an explicit rebuild action and a new open attempt. Lock/permission/unavailable errors remain retry-only. Shutdown cancels queued recovery and stops ingestion before final bounds are saved and SQLite closes. Fatal exceptions exit with a fixed message instead of a modal dialog or raw stack.
 
 Local diagnostics retain at most100 allowlisted events (under64KiB), including an opaque run identifier, entry point, version, timestamp and fixed error category. No exception message, source text, session ID or directory is recorded. This is local support history, not analytics. See docs/operations.md and docs/core-readiness.md for limitations and measured workloads.
+
+
+## Checkpoints
+
+`checkpoints.ts` validates saved checkpoint records and derives observation differences. Store persists a bounded checkpoint list in its own table; all create/select/delete operations run through the serialized service queue and commit before the in-memory view changes. A locked database does not discard the last snapshot. Scan coverage is staged in the same transaction as telemetry and cached only after commit. Rollback retains both the previous telemetry and its coverage state. Checkpoint actions validate session identity, name limits and sample-mode exclusion at the service boundary; IPC remains sender-checked. Clear telemetry deletes checkpoint rows transactionally. See docs/checkpoints.md for semantics and rollback limits.
