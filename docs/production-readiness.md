@@ -1,6 +1,6 @@
 # Production readiness
 Author: Ethan
-Published release: **1.2.0**, verified from public downloads with 43 hidden checks and matching hashes, signatures and tickets. See [compact release qualification](compact-release.md). Current 1.3.0 checkpoint changes are under verification; see [checkpoint qualification](checkpoint-release.md). The 1.2.0 and 1.1.0 evidence does not qualify the changed source.
+Published release: **1.3.0**, verified from public downloads. Both working and clean installs passed 67 Node tests; six build outputs match. The final signed DMG app and the app installed from the unauthenticated public DMG each passed 45 hidden checks, with no failures, skips or retries. ZIP/DMG/checksum hashes match; signatures, notarization tickets and Gatekeeper pass. See [checkpoint release qualification](checkpoint-release.md) and [machine-readable evidence](checkpoint-release-evidence.json). The 1.2.0 [compact release](compact-release.md) is also published and verified; its old pending-publication wording has been corrected. Historical 1.1.0 evidence below remains labeled separately.
 
 Historical qualified release:1.1.0. All supported-platform release gates passed. Publication is the final release action; the release page and its notes record live delivery status.
 

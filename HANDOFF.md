@@ -2,6 +2,22 @@
 Author: Ethan
 
 
+## DELIVERY VERIFIED: October 28, 2026
+
+Session Lens 1.3.0 is public and the final unauthenticated downloaded-app gate passed. Release: https://github.com/Ethant35/codex-session-lens/releases/tag/v1.3.0. PR6 merged; implementation 6b4cfe57a56467e306790e9a71ef9c887befdbc2, merge/tag d73d45032bd194e341d00820f26916ca626b1881. Source/manifest hashes still match the signed app. Do not rebuild, replace assets or retag this release. This section supersedes all earlier in-progress and paused instructions below.
+
+67 Node tests pass in working and clean installs. All six build outputs match. Both the final installed DMG and the public-DMG installed app pass 45/45 hidden checks, zero failures/skips/retries. Unauthenticated public ZIP/DMG/checksum downloads match; both downloaded app copies and quarantined DMG pass strict signatures, tickets and Gatekeeper. Both Apple submissions Accepted, issues:null. Exact hashes/IDs/limits: docs/checkpoint-release-evidence.json. No new paid model calls, visible tests, source writes, dependencies, GitHub Actions, global settings or config.toml changes.
+
+Checkpoint use and separate CLI commands are in docs/checkpoints.md. Known limits remain explicit: observation differences, late/incomplete data, distinct compaction timestamps, unknown current context occupancy, local unencrypted state, and older Clear telemetry controls cannot erase checkpoint rows. Real compatibility evidence is a bounded read-only inventory, not a full-history qualification. Semgrep Community errors/partial parses are disclosed. No unfamiliar-user or manual VoiceOver study is claimed.
+
+All evidence is retained in .local/verification-2026-10-28. Final archives: artifacts-final; public bytes: public-download. Final signed stage /private/tmp/codex-session-lens-1.3.0-final-oeus6apl. Installed/public copy paths are in install-root.txt and public-install-root.txt. Mounts were ejected. Superseded first candidate and temporary clean/development build copies were removed after evidence was retained. Normal installed app/data and pre-existing docs/operations 2.md and docs/ui-readiness 2.md remain untouched. No assistants were spawned or resumed.
+
+No product or delivery gate remains. Only publication of this final evidence/documentation commit is pending at this checkpoint. Monitor cell36 remains active until that finishes, with the updated stop at 50% REMAINING or an observed reset to 100% remaining. Last observed usage was 35% used, 65% remaining, reset timestamp1793774143. On final documentation merge, stop the monitor and mark the existing goal complete. Do not create recurring work or a replacement goal.
+
+## Published 1.3.0: October 28, 2026
+
+PR6 merged: https://github.com/Ethant35/codex-session-lens/pull/6. Implementation commit 6b4cfe57a56467e306790e9a71ef9c887befdbc2, merge/tag target d73d45032bd194e341d00820f26916ca626b1881. Release https://github.com/Ethant35/codex-session-lens/releases/tag/v1.3.0 is public, not prerelease. Sealed ZIP/DMG/checksums uploaded. Fresh unauthenticated public download and full hidden installed suite are in progress; don't claim that final gate passed yet. Monitor cell36 remains active at the updated 50%-REMAINING threshold. Superseded first candidate and temporary clean/dev copies removed; final artifacts/logs retained. Current source/manifest hashes still match signed bytes. Normal app/data and two untracked docs preserved.
+
 ## Qualified 1.3.0 checkpoint: October 28, 2026
 
 Final installed DMG app passed 45/45 hidden checks, no failures/skips/retries. Working and clean Node suites each passed 67. Six packaged build outputs match the clean build; source hashes remain sealed. App and DMG Apple submissions Accepted, issues:null; tickets/signatures/Gatekeeper passed. Details/hashes are in docs/checkpoint-release-evidence.json and .local/verification-2026-10-28. Final stage is /private/tmp/codex-session-lens-1.3.0-final-oeus6apl; archives under artifacts-final. No assistants. Monitor cell36 is active with the 50%-REMAINING guard and reset-to-100% stop. Next: normal PR/merge/release, then unauthenticated public-download and hidden installed-byte verification. This supersedes earlier signing/test-in-progress notes below. Preserve normal app/data and the two untracked user docs.
