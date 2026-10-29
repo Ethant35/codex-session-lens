@@ -19,6 +19,10 @@ All 47 signed-package checks passed without failures, skips or retries. Four foc
 
 ## Data and cleanup
 
-The existing installation was 1.0.1. Its closed data directory was copied to a private backup and all 29 regular-file hashes matched. Upgrade checks use disposable data, including a copy of that backup. The actual data directory is preserved when replacing the app bundle. The installed app is now 1.3.1. All 29 original data-file hashes remain unchanged after installation and tests. The private data backup remains available. The app was left closed. Nineteen temporary build/download paths were removed (4,054,251,848 logical file bytes), including development packages, clean-build dependencies, signing stages, disposable app copies, redundant archives and generated outputs. Reports, screenshots, hashes and notarization records remain; release assets remain on GitHub. The temporary publication checkout is removed after final documentation synchronization.
+The existing installation was 1.0.1. Its closed data directory was copied to a private backup and all 29 regular-file hashes matched. Upgrade checks use disposable data, including a copy of that backup. The actual data directory is preserved when replacing the app bundle. The installed app is now 1.3.1. All 29 original data-file hashes remain unchanged after installation and tests. The private data backup remains available. The app was left closed. Nineteen temporary build/download paths were removed (4,054,251,848 logical file bytes), including development packages, clean-build dependencies, signing stages, disposable app copies, redundant archives and generated outputs. Reports, screenshots, hashes and notarization records remain; release assets remain on GitHub. The temporary publication checkout was removed after final documentation synchronization.
 
 Evidence is retained in `.local/release-1.3.1/`. Old release tags and sealed remote artifacts are not changed.
+
+## Frozen contract closeout
+
+The [requirement-to-evidence map](release-contract.md) closes the supported technical contract without runtime changes or a new release. The [unfamiliar-user trial](unfamiliar-user-trial.md) is prepared and pending a willing participant; it is not included in successful coverage.
