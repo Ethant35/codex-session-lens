@@ -38,7 +38,7 @@ test('hidden prior-version upgrade and rollback preserve real prior-version cach
     await copyFile(join(data, 'telemetry.sqlite'), join(root, 'before-upgrade.sqlite'));
 
     run = await launch(current);
-    expect(await run.app.evaluate(({ app }) => app.getVersion())).toBe('1.3.0');
+    expect(await run.app.evaluate(({ app }) => app.getVersion())).toBe('1.3.1');
     const state = await run.page.evaluate(() => window.lens.snapshot());
     expect(state.preferences).toMatchObject({ theme: 'dark', compact: true, selectedId: 'prior-version', onboardingCompleted: true });
     await expect(run.page.getByRole('region', { name: 'Getting started' })).toBeHidden();

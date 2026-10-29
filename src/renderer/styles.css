@@ -47,6 +47,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .icon-button:first-letter { font-size: 15px; }
 .notice { margin: -10px 0 14px; border-radius: 8px; padding: 9px 12px; font-size: 14px; }
 .notice.error { color: var(--danger); background: color-mix(in srgb, var(--warning) 11%, var(--panel)); border: 1px solid color-mix(in srgb, var(--warning) 25%, var(--line)); }
+.scan-warning { margin: 12px 0; padding: 10px 12px; border: 1px solid var(--warning); border-radius: 8px; color: var(--warning-text); background: color-mix(in srgb, var(--warning) 10%, var(--panel)); font-size: 14px; }
+.scan-warning p { margin: 0; }
+.scan-warning .text-button { margin-top: 4px; }
 
 .session-bar { padding: 17px 18px 13px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
 .session-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }

@@ -144,6 +144,7 @@ function App() {
     if (settingsOpen) document.querySelector<HTMLElement>('#settings-title')?.focus();
   }, [settingsOpen]);
   const prefs = snapshot?.preferences;
+  const scanIncomplete = !snapshot?.recovery && !prefs?.sampleMode && (snapshot?.diagnostics.errors ?? 0) > 0;
   const localName = (session: Session) => prefs?.aliases && Object.hasOwn(prefs.aliases, session.id) ? prefs.aliases[session.id] : undefined;
   const sessions = snapshot?.sessions ?? [];
   const selected = sessions.find(session => session.id === prefs?.selectedId) ?? (prefs?.sampleMode ? sessions[0] ?? null : null);
@@ -202,6 +203,14 @@ function App() {
 
     {loadError && <div id="load-error" className="notice error" role="alert" tabIndex={-1}>Session data could not be read. Check the folder permissions or try again. <button type="button" className="text-button" onClick={() => void refresh()}>Try again</button></div>}
     {actionError && <div id="action-error" className="notice error" role="alert">Could not save this change. Check the folder path or setting and try again.</div>}
+
+    {scanIncomplete && <div className="scan-warning" role="status" aria-label="Scan warning">
+      <p><strong>Scan incomplete.</strong> {sessions.length > 0 ? 'Displayed values may be out of date or incomplete.' : 'Session files could not be fully read.'}</p>
+      <button type="button" className="text-button" aria-controls="settings-panel" onClick={() => {
+        setSettingsOpen(true);
+        if (settingsOpen) document.querySelector<HTMLElement>('#settings-title')?.focus();
+      }}>View diagnostics</button>
+    </div>}
 
     {snapshot?.recovery && <section id="recovery-state" className="recovery-state" role="alert" aria-labelledby="recovery-title" tabIndex={-1}>
       <h1 id="recovery-title">Cache unavailable</h1>
@@ -343,7 +352,7 @@ function App() {
       <div className="setup-replay"><button type="button" className="text-button" disabled={busy} onClick={() => { setSettingsOpen(false); void setPreference({ onboardingCompleted: false, sampleMode: false }); }}>Show setup</button></div>
     </section>}
 
-    <footer className="footer"><span>{busy ? 'Saving…' : snapshot?.recovery ? 'Cache unavailable' : prefs?.sampleMode ? 'Sample · no live scan' : prefs?.onboardingCompleted === false ? 'Choose folders to begin' : prefs?.paused ? 'Ingestion paused' : 'Watching session folders'}</span></footer>
+    <footer className="footer"><span>{busy ? 'Saving…' : snapshot?.recovery ? 'Cache unavailable' : prefs?.sampleMode ? 'Sample · no live scan' : prefs?.onboardingCompleted === false ? 'Choose folders to begin' : prefs?.paused ? 'Ingestion paused' : scanIncomplete ? 'Scan incomplete' : 'Watching session folders'}</span></footer>
   </main>;
 }
 
