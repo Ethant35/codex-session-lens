@@ -1,6 +1,21 @@
 # Session Lens handoff
 Author: Ethan
 
+## 1.3.1 release authorized and qualified: October 29, 2026
+
+Ethan authorized publication, updating the installed app while preserving data, and cleanup of build artifacts. The 1.3.1 candidate passed working/clean Node tests (67 each), six-file build comparison, 47 signed hidden checks and four quarantined DMG checks. App and DMG are separately notarized, stapled, signature-verified and Gatekeeper-accepted. An isolated copy of the actual cache preserved all 185 sessions and totals without a live scan. The actual installed version is 1.0.1 and remains unchanged until public-download verification. A private cold-data backup was verified. Evidence: `.local/release-1.3.1/` and docs/scan-warning-release-evidence.json.
+
+The original checkout has a malformed duplicate ref `refs/heads/codex/session-checkpoints 2`; preserve it and both duplicate documentation files. Publication uses a source-matched clean clone, with no repair or deletion of user refs. Both usage-based stops remain disabled. No goal or assistants were started.
+
+
+## Review fixes complete locally: October 29, 2026
+
+Ethan authorized fixing the independent review's two findings with hidden or CLI-only checks. The compact HUD now surfaces scan errors above retained values and opens diagnostics by keyboard; its footer no longer claims healthy monitoring during a known scan error. The first-use guide now identifies the released 1.3.0 and explains checkpoint persistence and rollback limits. Changes remain in the working tree, uncommitted and unpublished. The normal app/data and pre-existing `docs/operations 2.md` and `docs/ui-readiness 2.md` remain untouched.
+
+Build and 67 Node tests passed. Eighteen existing hidden UI checks passed, then both new regressions passed after two test-harness expectation corrections. The two new regressions also failed against the unchanged 1.3.0 package, confirming they detect the original defect. Light/dark screenshots were inspected. Details and limits: docs/production-readiness.md, local evidence `.local/review-fixes-2026-10-29/`. All test runs ended and owned test apps closed. The local test package is unsigned and is not a replacement for the sealed release. No publication or further production work is part of this completed fix request.
+
+During this work Ethan's coordinator explicitly disabled BOTH usage stops: the 50%-remaining threshold and the reset-to-100%-remaining stop, plus other usage-based pauses. That supersedes older guard instructions below. No usage monitor or child agent was started for these fixes. The existing completed production goal was not changed.
+
 
 ## DELIVERY VERIFIED: October 28, 2026
 

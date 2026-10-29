@@ -1,6 +1,17 @@
 # Production readiness
 Author: Ethan
+
+Current 1.3.1 candidate: 67 working and 67 clean Node tests, six identical build outputs, 47 signed hidden checks and four quarantined DMG checks passed. App and DMG notarization were Accepted; signatures, tickets and Gatekeeper passed. Publication and installed-app update remain pending. See [patch release qualification](scan-warning-release.md).
+
 Published release: **1.3.0**, verified from public downloads. Both working and clean installs passed 67 Node tests; six build outputs match. The final signed DMG app and the app installed from the unauthenticated public DMG each passed 45 hidden checks, with no failures, skips or retries. ZIP/DMG/checksum hashes match; signatures, notarization tickets and Gatekeeper pass. See [checkpoint release qualification](checkpoint-release.md) and [machine-readable evidence](checkpoint-release-evidence.json). The 1.2.0 [compact release](compact-release.md) is also published and verified; its old pending-publication wording has been corrected. Historical 1.1.0 evidence below remains labeled separately.
+
+## Local review fixes: October 29, 2026
+
+The independent review's two findings are fixed in the working tree. Ingestion errors now show a compact warning above session values, with keyboard access to Settings and diagnostics. The footer says Scan incomplete while errors remain; paused ingestion stays labeled paused. Retained values are preserved and identified as potentially stale or incomplete. Sample and cache-recovery modes keep their own status. The first-use guide now targets the published 1.3.0 release and covers checkpoint persistence, clearing and rollback limits.
+
+Verification: `npm run build` and all 67 Node tests passed. A separate unsigned development package was exercised with hidden windows and disposable data. Eighteen existing onboarding/accessibility, operational, usability and checkpoint checks passed; the two new regression checks passed after correcting test assumptions about asynchronous preference saves and retained skipped-record diagnostics. Both new tests first failed against the unchanged 1.3.0 package at the missing-warning assertion. Light/dark warning screenshots were inspected; warnings and diagnostics actions fit the default compact viewport. Local guide links and `git diff --check` passed. Evidence: `.local/review-fixes-2026-10-29/`, including baseline and initial failed test reports. No assertions were suppressed and no product changes were needed for those two test corrections.
+
+These fixes are not in the published 1.3.0 artifacts. No release, installation, signing or notarization was performed for this patch. The existing app and user data remain untouched. The screenshots have no verified personal-author metadata; this document's author remains Ethan.
 
 Historical qualified release:1.1.0. All supported-platform release gates passed. Publication is the final release action; the release page and its notes record live delivery status.
 

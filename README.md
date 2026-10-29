@@ -3,7 +3,7 @@ A local-first macOS companion HUD for individual Codex sessions. It keeps cumula
 
 ## Install
 
-[Download Session Lens 1.3.0 for Apple Silicon](https://github.com/Ethant35/codex-session-lens/releases/download/v1.3.0/Codex.Session.Lens-1.3.0-arm64.dmg). The app is Developer ID signed, Apple notarized and stapled. A ZIP and final checksums are on the [release page](https://github.com/Ethant35/codex-session-lens/releases/tag/v1.3.0).
+[Download Session Lens 1.3.1 for Apple Silicon](https://github.com/Ethant35/codex-session-lens/releases/download/v1.3.1/Codex.Session.Lens-1.3.1-arm64.dmg). The app is Developer ID signed, Apple notarized and stapled. A ZIP and final checksums are on the [release page](https://github.com/Ethant35/codex-session-lens/releases/tag/v1.3.1).
 
 Open the DMG and drag **Codex Session Lens** into Applications. Open the app, review the suggested Codex folders or use **Choose folders…**, then scan and select a session. Give it an optional private local name so you can find it again. Setup can be skipped or replayed; the sample is synthetic. See the [first-use, update and recovery guide](docs/usability-release.md). Stop if macOS reports a security warning; check the official release and checksums instead of bypassing Gatekeeper.
 

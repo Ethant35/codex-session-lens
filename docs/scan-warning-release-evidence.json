@@ -1,0 +1,39 @@
+{
+  "author": "Ethan",
+  "version": "1.3.1",
+  "date": "2026-10-29",
+  "status": "qualified-awaiting-publication",
+  "nodeTests": 67,
+  "cleanNodeTests": 67,
+  "identicalBuildOutputs": 6,
+  "signedHiddenChecks": 47,
+  "quarantinedInstalledChecks": 4,
+  "failures": 0,
+  "skips": 0,
+  "retries": 0,
+  "appAsarSha256": "07c0da08c09a29dbc74c54d6b679a9c483fcda694abc9470cea6d62f44cd862d",
+  "artifacts": [
+    {
+      "name": "Codex.Session.Lens-1.3.1-arm64-mac.zip",
+      "sha256": "a3d9d3e3221ce333b455f1b5bce796d661fa4a7ea49e274107ff3f0c8ed11d8a",
+      "bytes": 122783866
+    },
+    {
+      "name": "Codex.Session.Lens-1.3.1-arm64.dmg",
+      "sha256": "104be0d73a7288e17f0856c6c32404f115fbafb2ea1c5e7c86f7fe64bf4e02ec",
+      "bytes": 134360349
+    }
+  ],
+  "appSubmission": "e0738928-3478-46fe-839e-dedb4904e0f6",
+  "dmgSubmission": "cef7800d-db48-414e-9006-aec18142e83a",
+  "notarization": "Both Accepted; issues null; stapled and validated",
+  "gatekeeper": "accepted",
+  "actualDataCopySessionsPreserved": 185,
+  "productionDependencyAdvisories": 0,
+  "limits": [
+    "Native chooser mocked; no manual VoiceOver study",
+    "No new paid model calls",
+    "Direct changed-code security review; prior full scan is historical",
+    "Original checkout contains a malformed duplicate ref; source-matched clean clone used for publishing"
+  ]
+}
