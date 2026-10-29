@@ -1,6 +1,8 @@
 # Production readiness
 Author: Ethan
 
+Frozen 1.3.1 contract: **PASS within documented scope**, with no demonstrated essential blocker. See the [requirement-to-evidence map](release-contract.md). The unfamiliar-user trial is prepared but pending; no human usability success is claimed. Runtime, installed-package and public-asset identity were refreshed without rerunning unchanged tests.
+
 Published and installed release **1.3.1**: 67 working and 67 clean Node tests, six identical build outputs, 47 signed hidden checks, four quarantined DMG checks, and 47 hidden checks against the actual updated installation passed. Public downloads match the qualified bytes. App and DMG notarization, tickets, signatures and Gatekeeper pass. The installed app was updated from 1.0.1; all 29 original data-file hashes remain unchanged and a verified backup is retained. Temporary build/download copies were removed. See [patch release qualification](scan-warning-release.md) and [exact evidence](scan-warning-release-evidence.json).
 
 Previous published release: **1.3.0**, verified from public downloads. Both working and clean installs passed 67 Node tests; six build outputs match. The final signed DMG app and the app installed from the unauthenticated public DMG each passed 45 hidden checks, with no failures, skips or retries. ZIP/DMG/checksum hashes match; signatures, notarization tickets and Gatekeeper pass. See [checkpoint release qualification](checkpoint-release.md) and [machine-readable evidence](checkpoint-release-evidence.json). The 1.2.0 [compact release](compact-release.md) is also published and verified; its old pending-publication wording has been corrected. Historical 1.1.0 evidence below remains labeled separately.

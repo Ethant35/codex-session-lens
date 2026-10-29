@@ -1,6 +1,15 @@
 # Session Lens handoff
 Author: Ethan
 
+## Frozen contract complete: October 29, 2026
+
+The supported technical release contract passes: install, manual session identity/selection, conservative telemetry, checkpoints, restart and source/cache recovery with source preservation. The exact requirement map and limits are in docs/release-contract.md. Both Terra findings are closed by 1.3.1. The unfamiliar-user trial recommended via Sol is prepared in docs/unfamiliar-user-trial.md; no willing participant was available, so it remains explicitly pending and is not a release blocker or a passed test. No recruiting or recurring work was started.
+
+This closeout changed documentation only. Runtime-source hashes, installed app.asar and current public asset digests/sizes still match qualified 1.3.1. Reused evidence: 67 working/clean Node tests each, 47 signed checks, four quarantined DMG checks and 47 final public-installed checks. Actions remains disabled. Original data and the private backup were not modified; no app was launched. The prior artifact cleanup remains complete. Closeout evidence is `.local/contract-closeout-2026-10-29/verification.json`, with final synchronization/temporary-checkout cleanup in that folder's completion.json.
+
+The goal tool returned no existing goal to mark complete. No replacement goal was created or resumed. Work stops at this contract; only a newly authorized, demonstrated blocker or voluntary trial can reopen a bounded task. The immutable public release remains https://github.com/Ethant35/codex-session-lens/releases/tag/v1.3.1. Preserve the malformed duplicate Git ref and both unrelated duplicate documentation files.
+
+
 ## 1.3.1 delivered and installed: October 29, 2026
 
 This supersedes earlier pending/local-only notes. Release https://github.com/Ethant35/codex-session-lens/releases/tag/v1.3.1 is public at immutable tag/merge 7382d0b7f9cb2105852ef10cdd57bd2048f48ffb. PR8 merged. Both artifacts are signed, separately notarized, stapled and verified. Public DMG/ZIP/checksums match sealed hashes. The actual installed app at `~/Applications/Codex Session Lens.app` is updated from 1.0.1 to 1.3.1 using the public DMG copy. All 29 data-file hashes remain unchanged; the verified backup is `~/Library/Application Support/codex-session-lens-backups/pre-1.3.1-2026-10-29/data`. The app is closed.

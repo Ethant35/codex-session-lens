@@ -9,7 +9,7 @@ These are observation differences, not exact usage between wall-clock times. A l
 
 Checkpoints contain a local name, opaque ID, session ID, creation/sample times, baseline counters, observed compaction count and coverage/selection flags. They contain no prompt, message, replacement history, full source path or remote data. Names are user-entered plain text, bounded to 80 characters. The cache is local and unencrypted. Checkpoints persist after restart and after a source is removed. **Clear telemetry** deletes them; recovery backups retain their old contents.
 
-Upgrading preserves existing aliases, preferences and telemetry. A rollback to 1.2.0 cannot display or manage checkpoints, but ordinary use preserves them for a later forward upgrade. Older versions do not know the checkpoint table, so their Clear telemetry control does not erase it. To remove checkpoints, use Clear telemetry in 1.3.0 or remove the closed data directory as described in the operations guide.
+Upgrading preserves existing aliases, preferences and telemetry. A rollback to 1.2.0 cannot display or manage checkpoints, but ordinary use preserves them for a later forward upgrade. Older versions do not know the checkpoint table, so their Clear telemetry control does not erase it. To remove checkpoints, use Clear telemetry in 1.3.0 or later, or remove the closed data directory as described in the operations guide.
 
 ## CLI
 
