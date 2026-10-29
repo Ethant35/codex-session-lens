@@ -1,6 +1,15 @@
 # Session Lens handoff
 Author: Ethan
 
+## 1.3.1 delivered and installed: October 29, 2026
+
+This supersedes earlier pending/local-only notes. Release https://github.com/Ethant35/codex-session-lens/releases/tag/v1.3.1 is public at immutable tag/merge 7382d0b7f9cb2105852ef10cdd57bd2048f48ffb. PR8 merged. Both artifacts are signed, separately notarized, stapled and verified. Public DMG/ZIP/checksums match sealed hashes. The actual installed app at `~/Applications/Codex Session Lens.app` is updated from 1.0.1 to 1.3.1 using the public DMG copy. All 29 data-file hashes remain unchanged; the verified backup is `~/Library/Application Support/codex-session-lens-backups/pre-1.3.1-2026-10-29/data`. The app is closed.
+
+Working/clean Node tests: 67 each. Six runtime outputs match. Signed suite: 47/47; quarantined DMG checks: 4/4; final suite against the updated installation with disposable data: 47/47. No failures/skips/retries in those final runs. The actual-data copy preserved 185 sessions and totals with live scans paused. Evidence: docs/scan-warning-release-evidence.json and `.local/release-1.3.1/`. Nineteen build/download paths totaling about 4.05 GB of logical files were removed; logs, screenshots, hashes, public release assets and the private data backup remain. No goal or agents were started. Both usage stops remain disabled.
+
+The malformed duplicate Git ref and two unrelated duplicate documents remain preserved. A clean source-matched clone handled publication. The final evidence commit, local checkout synchronization and temporary-clone cleanup are recorded in `.local/release-1.3.1/completion.json`. No further product work or tests are required.
+
+
 ## 1.3.1 release authorized and qualified: October 29, 2026
 
 Ethan authorized publication, updating the installed app while preserving data, and cleanup of build artifacts. The 1.3.1 candidate passed working/clean Node tests (67 each), six-file build comparison, 47 signed hidden checks and four quarantined DMG checks. App and DMG are separately notarized, stapled, signature-verified and Gatekeeper-accepted. An isolated copy of the actual cache preserved all 185 sessions and totals without a live scan. The actual installed version is 1.0.1 and remains unchanged until public-download verification. A private cold-data backup was verified. Evidence: `.local/release-1.3.1/` and docs/scan-warning-release-evidence.json.

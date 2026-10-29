@@ -2,7 +2,7 @@
   "author": "Ethan",
   "version": "1.3.1",
   "date": "2026-10-29",
-  "status": "qualified-awaiting-publication",
+  "status": "published-installed-and-cleaned",
   "nodeTests": 67,
   "cleanNodeTests": 67,
   "identicalBuildOutputs": 6,
@@ -35,5 +35,21 @@
     "No new paid model calls",
     "Direct changed-code security review; prior full scan is historical",
     "Original checkout contains a malformed duplicate ref; source-matched clean clone used for publishing"
-  ]
+  ],
+  "releaseUrl": "https://github.com/Ethant35/codex-session-lens/releases/tag/v1.3.1",
+  "releaseCommit": "7382d0b7f9cb2105852ef10cdd57bd2048f48ffb",
+  "sourceCommit": "2e87bd858573fb14a83953c65c8bb6c311d21859",
+  "publicArtifactHashesMatch": true,
+  "publicSignatureGatekeeperTickets": "passed for DMG and ZIP copies",
+  "publicInstalledHiddenChecks": 47,
+  "publicInstalledFailures": 0,
+  "publicInstalledSkips": 0,
+  "publicInstalledRetries": 0,
+  "installedPreviousVersion": "1.0.1",
+  "installedVersion": "1.3.1",
+  "installedPath": "~/Applications/Codex Session Lens.app",
+  "originalDataFilesUnchanged": 29,
+  "verifiedPrivateDataBackupRetained": true,
+  "temporaryBuildPathsRemoved": 19,
+  "temporaryBuildBytesRemoved": 4054251848
 }
