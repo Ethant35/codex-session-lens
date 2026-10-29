@@ -90,6 +90,7 @@ app.whenReady().then(async () => {
     } finally { choosingDirectories = false; }
   });
   handle('lens:alias', async (id: unknown, label: unknown) => { await lens.alias(id, label); return snapshot(); });
+  handle('lens:checkpoint', async (action: unknown, id: unknown, value: unknown) => { await lens.checkpoint(action, id, value); return snapshot(); });
   handle('lens:recover',async (action: unknown) => { await lens.recover(action); diagnostics?.record(lens.snapshot().recovery ? 'cache_unavailable' : 'cache_recovered'); return snapshot(); });
   handle('lens:select',async (id: unknown) => { await lens.select(id); return snapshot(); });
   handle('lens:preferences',async (value: unknown) => {

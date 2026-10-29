@@ -112,3 +112,21 @@ test('help and argument validation never scan implicit directories', async t => 
   }
   assert.deepEqual(await readdir(f.temporary), []);
 });
+
+test('CLI checkpoints persist across scans without Electron or the HUD cache', async t => {
+  const f=await setup(t),cache=join(f.root,'cache');
+  assert.equal(f.run('scan','--source',f.source,'--cache',cache).status,0);
+  const command=(...args)=>f.run('checkpoint','--cache',cache,'--session','cli-session',...args);
+  const created=command('--name','Before work');assert.equal(created.status,0,created.stderr);
+  const point=JSON.parse(created.stdout).checkpoints[0];assert.deepEqual(point.delta,{input:0,output:0,cached:0});
+  const next={...usage,input_tokens:1800,output_tokens:400,cached_input_tokens:700,total_tokens:2200};
+  await writeFile(f.path,fixture+row('compacted',{message:'PRIVATE_CHECKPOINT_SENTINEL'},3)+'\n'+row('event_msg',{type:'token_count',info:{total_token_usage:next,last_token_usage:next}},4)+'\n');
+  assert.equal(f.run('scan','--source',f.source,'--cache',cache).status,0);
+  const list=command();assert.equal(list.status,0,list.stderr);
+  const delta=JSON.parse(list.stdout).checkpoints[0];assert.deepEqual(delta.delta,{input:600,output:100,cached:200});assert.equal(delta.observedCompactions,1);
+  assert.doesNotMatch(list.stdout,/PRIVATE_CHECKPOINT_SENTINEL/);
+  assert.equal(command('--delete',point.id).status,0);assert.deepEqual(JSON.parse(command().stdout).checkpoints,[]);
+  assert.equal(command('--name','x','--delete','x').status,2);
+  assert.equal(command('--source',f.source).status,2);
+  assert.equal(f.run('checkpoint','--session','cli-session').status,2);
+});

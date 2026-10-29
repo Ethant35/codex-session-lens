@@ -15,7 +15,7 @@ A local, single-user, offline macOS companion for users who have readable Codex 
 - Performance: measure representative workloads before setting an evidence-based budget. Actual local source inventory is 138 JSONL files / 3051.3 MiB / largest604.2 MiB (counts only; no content published). Qualify bounded memory/work, responsive cancellation and sustained updates, rather than imposing web-vitals thresholds on a desktop app.
 - Recoverable startup/storage errors, locking, interruption, version upgrades, backups and reset must have tested behavior. Never silently discard an existing cache or source data.
 - Onboarding must reach a useful result from a fresh install, with skip/replay/returning-user and missing-source/error paths. Safe samples must be plainly synthetic and separate from real metrics.
-- Production distribution requires signed/notarized packaged artifacts and installation/update/recovery documentation. A working Developer ID identity exists locally; notarization qualification is still unverified.
+- Production distribution requires signed/notarized packaged artifacts and installation/update/recovery documentation. A working Developer ID identity exists locally. Each new release requires its own accepted notarization submissions, tickets and downloaded-byte verification.
 - No GitHub Actions, hooks, global changes or config.toml edits. Verify disabled Actions before pushes, PRs, tags and releases. Author personal metadata as Ethan.
 
 ## Verification placement

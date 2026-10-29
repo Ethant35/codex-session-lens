@@ -1,6 +1,87 @@
 # Session Lens handoff
 Author: Ethan
 
+
+## Qualified 1.3.0 checkpoint: October 28, 2026
+
+Final installed DMG app passed 45/45 hidden checks, no failures/skips/retries. Working and clean Node suites each passed 67. Six packaged build outputs match the clean build; source hashes remain sealed. App and DMG Apple submissions Accepted, issues:null; tickets/signatures/Gatekeeper passed. Details/hashes are in docs/checkpoint-release-evidence.json and .local/verification-2026-10-28. Final stage is /private/tmp/codex-session-lens-1.3.0-final-oeus6apl; archives under artifacts-final. No assistants. Monitor cell36 is active with the 50%-REMAINING guard and reset-to-100% stop. Next: normal PR/merge/release, then unauthenticated public-download and hidden installed-byte verification. This supersedes earlier signing/test-in-progress notes below. Preserve normal app/data and the two untracked user docs.
+
+## ACTIVE: checkpoints and telemetry compatibility, October 28, 2026
+
+Ethan explicitly resumed the queued scope: trim redundant UI copy, check current telemetry compatibility, correct stale release documentation, and add local session checkpoints with accounting/persistence/usability checks. All tests must stay hidden or CLI-only. No new paid model calls. This section supersedes older pause and threshold text below while this work is active.
+
+The coordinator relayed Ethan's updated guard during work: stop at **50% usage REMAINING (50% used)** in any applicable allowance, or an observed reset to 100% remaining. The previous 5% guard is superseded. Baseline on this resume was 6% used, reset timestamp 1793774143. The monitor now reads every 45 seconds in exec cell36. The actual goal is active; its old 10% objective text was not edited. No assistants were spawned or resumed in this run.
+
+Branch `codex/session-checkpoints` starts from the 1.2.0 merge commit `1960118b2b91d9f4ab51c8c0ff7ab7cf9b6a9645`. Source version is 1.3.0. Do not replace or retag the sealed 1.2.0 release. Its final public-download evidence has been synchronized into docs and the GitHub release notes. Two pre-existing untracked files (`docs/operations 2.md`, `docs/ui-readiness 2.md`) remain untouched.
+
+Implemented: session-bound named checkpoint baselines with persisted selection, cumulative input/output/cached differences, observed compaction changes, explicit missing/uncertain data, transactional clear/delete and capacity limits; matching CLI commands use a separate cache. Current local format inventory found paired token_count/token_usage_record timestamps and top-level compacted rows; context reduction now retains matching complete estimates and refuses a legacy-context fallback for newer detailed usage. No messages or replacement history enter the cache. Source files remain read-only. See docs/checkpoints.md and docs/source-compatibility.md.
+
+Evidence `.local/verification-2026-10-28`: 44 hidden development checks passed before the final one-line legacy-context correction. Clean and working Node suites passed 66; an added transaction-failure/coverage test passes, and complete 67-test runs are in progress. Six clean build outputs match the final source. Two same-plan Semgrep runs in static_analysis_semgrep_6/_7 report eight reviewed heuristics, no confirmed vulnerability in those findings, 15 rule errors and six partial renderer parses. Direct review covers the final one-line correction after scan7. All temporary rule clones were removed. npm audit has zero advisories. 50k synthetic records: 739.88ms, +35.78MiB RSS, 17.63ms max loop lag. Earlier failed CSP-injection UI attempt is retained; repaired test uses CDP and a failing axe control, without changing product CSP.
+
+Current final signing stage: `/private/tmp/codex-session-lens-1.3.0-final-oeus6apl`; pointer in release-stage.txt. Earlier signed candidate xhaup9ic is superseded because the final one-line projection fix came afterward; do not submit it. Final candidate signing is active. Remaining: finish final signing, notarize/staple app and DMG, qualify the final installed bytes with hidden 45-test suite, synchronize qualification docs, commit/review/publish via normal GitHub operations with Actions disabled, then verify unauthenticated public downloads and hidden installed tests. Recheck current usage before proceeding after idle. No automatic resume after any stop.
+
+## PAUSED at Ethan's request: October 27, 2026
+
+Ethan said: “Let's pause here andmake handoff.” Product/release work stopped immediately. The actual goal tool now reports **paused**, not complete. No automatic resume. No further implementation, testing, publication, documentation finalization or investigation until Ethan explicitly resumes. This section supersedes older active/checkpoint instructions below.
+
+### Shipped and freshly verified
+
+**Session Lens 1.2.0 is publicly released:** https://github.com/Ethant35/codex-session-lens/releases/tag/v1.2.0
+
+PR5 is merged and attached to this chat: https://github.com/Ethant35/codex-session-lens/pull/5
+Implementation commit: `cd5aa899aafcc48b10f4858e6b95fa47f6fad957` (author/committer Ethan).
+Release tag and merge commit: `1960118b2b91d9f4ab51c8c0ff7ab7cf9b6a9645`.
+Local branch: `codex/compact-hud-1-2`, still at the implementation commit; fetched origin/main is the merge commit. Their product trees match. Do not rebuild, replace or retag the sealed release.
+
+- Compact default HUD keeps selected session, input/output totals and last-request context above the fold. Secondary information is under Details. Optional project-folder basenames default off; no full metadata paths or prompt text are retained. Opt-out clears labels. Unreadable/conflicting sources withhold hints without deleting telemetry. CLI and all app checks remain quiet/hidden.
+- 55 Node tests pass. A clean locked-dependency install also passed all55; six emitted outputs match byte-for-byte. All six packaged outputs were compared to the clean outputs. Version1.2.0 and package Author=Ethan verified. Fresh screenshot PNG Author=Ethan verified.
+- Final signed app installed from the final DMG: **43/43**, no failures/skips/retries, `.local/verification-2026-10-27/installed-qualified.{json,log}`. Includes upgrade/rollback from published1.1.0 and isolated reinstall/data-removal. Separate1.0.1 upgrade/rollback passed. Alias and label preference semantics follow what the older app actually persists.
+- **Unauthenticated public ZIP, DMG and SHA256SUMS downloads match the verified final artifacts.** Both downloaded app copies and quarantined DMG pass code-signature/Gatekeeper/ticket checks. The public-DMG installed app then passed **43/43**, no failures/skips/retries: `public-installed.{json,log}`. This completed immediately before Ethan's pause request.
+- App Apple submission `7eaf200b-c65f-4588-9a9c-2be390257940` and DMG submission `b80ee534-e65f-4244-92fe-a50093f000c5`: Accepted, issues:null. App stapled before ZIP recreation; DMG independently signed/notarized/stapled. Developer ID TeamZ2SL92S4B6, hardened runtime with allow-jit only. Existing `ethan-notary` profile worked without exposing credentials.
+- Same approved11-pack Semgrep Community1.182.1 run retained in `static_analysis_semgrep_5`: eight reviewed heuristic findings, no confirmed exploit in those findings;15 rule-pattern errors and six partial renderer parses disclosed. All11 packs produced outputs; no failed/skipped/empty/oversized entries. Rule revisions/raw errors retained; temporary rule clones removed. npm audit zero advisories. Missing local scanner runtime was restored from the existing exact lock under ignored `.local/semgrep`; shared/global configuration was not changed.
+- Ten alternating label-off/on synthetic scans passed identical completed-work/source-hash checks:120files/15480records/5.96MB, cold medians238.27/239.26ms, warm10.19/15.04ms. High host load limits comparisons. No fresh private-history scan or paid model call.
+- GitHub Actions remain disabled, latest observed run count0. No global settings/hooks/config.toml changes. Normal installed app/data and pre-existing `docs/operations 2.md` and `docs/ui-readiness 2.md` were preserved.
+
+### Exact artifacts and retained evidence
+
+ZIP `Codex.Session.Lens-1.2.0-arm64-mac.zip`: `75fd5665c2dfe8e4574e26aa888904a7b5ed35ee4c2f5d0240e6bfbbb88de987` (122679970bytes).
+DMG `Codex.Session.Lens-1.2.0-arm64.dmg`: `c569006ad332a14c9c7106f52a89f96d46b393b22efcf27a442eefa3bb9c1617` (122233496bytes).
+app.asar: `e4dcc06a5dbfde76555af505f27f80121e34345fff58c80687c2d659491c62c5`.
+
+Run directory: `.local/verification-2026-10-27/`.
+Important files: `public-hashes.json`, `public-security.txt`, `public-installed.json`, `installed-qualified.json`, `qualified-evidence.json`, `package-provenance.json`, `clean-build-comparison.json`, `source-hashes.json`, `final-artifacts.json`, notarization/stapling/signature logs, `github-public.json`, screenshots and benchmark JSON.
+Final uploaded archives: `artifacts-final/`; public copies: `public-download/`.
+Source/runtime files still match the hashes recorded before signing. The disposable clean-build copy was removed after evidence capture; its logs/comparison remain.
+
+Retained task-owned bundles, no running process:
+- Signed stage: `/private/tmp/codex-session-lens-1.2.0-45LAMG` (recorded via /tmp alias in `release-stage.txt`; use canonical path for launches).
+- Prepublication installed copy: path in `install-root.txt`, `/private/var/folders/j_/l874vytd19j5hkhl05ymffbc0000gn/T/lens-1.2.0-install-2y_zupvs`.
+- Public installed and ZIP copies: path in `public-install-root.txt`, `/private/var/folders/j_/l874vytd19j5hkhl05ymffbc0000gn/T/lens-public-1.2.0-xfrf0v0e`.
+Both DMG mounts were ejected. These copies can be removed after retaining needed evidence; never delete sealed archives or the normal app as cleanup.
+
+### Test diagnosis retained honestly
+
+Earlier development/signed runs failed shutdown tests because the5-second deadline did not cover observed signed Electron shutdown. Diagnostic native exit was code0 about8.58s after SIGTERM, with integrity=ok; fatal exit was code1 about10.36s. Final tests use a documented15-second bound, await actual process exit rather than inherited-pipe close, and retain exact exit-code/privacy/SQLite checks. No product shutdown code was changed. Canonical paths avoid macOS sandbox warnings from the /tmp symlink. A temporary inspector.close trigger used during investigation was removed before the committed/final full suite; final fatal tests throw the uncaught error normally. Cleanup may release a failed test's debugger but cannot count forced cleanup as success.
+
+The initial reinstall test raced the async Expand preference and clicked Details while it was changing. It now awaits the persisted expanded view. Final installed and public full suites are green. Failed/intermediate reports remain; do not replace their counts with later passes.
+
+### Remaining after an explicit resume
+
+The release is already shipped and verified. **Only final evidence/documentation synchronization and ordinary cleanup remain**; no known product blocker or user input is outstanding.
+
+1. Update `docs/compact-release.md`, `docs/compact-release-evidence.json` and `docs/production-readiness.md` to record public-download hash/signature/ticket/43-check completion. They currently still say publication/public verification pending because Ethan paused immediately after the final run.
+2. Update GitHub v1.2.0 release notes to replace their final pending-verification sentence with the observed public result. Local notes draft is `release-notes.md` in the run folder. Do not upload different binaries or move the tag.
+3. Commit/push the final evidence/handoff documentation with Ethan authorship and Actions disabled, preserving the two unrelated untracked docs. Ordinary repository/release operations remain authorized on explicit resume. No new product tests are needed for prose-only updates unless new concerns arise.
+4. Remove only disposable task copies if useful; retain archives/logs. Then mark the existing production goal complete after final documentation is accurate. Do not create a duplicate goal or call phase completion product completion.
+
+Support limits stay explicit: Apple Silicon/macOS27.2 qualified; native chooser boundary mocked; no unfamiliar-user study/manual VoiceOver listening; Community static-analysis coverage limits; no automatic foreground-session switching or remote/compressed-source support.
+
+### Confirmed stopped state and guard
+
+Usage checker **cell2 was terminated** at the pause request. Last delivered actual reading: **82% used /18% remaining**, reset timestamp `1793599137`. This pause was requested by Ethan, not triggered by the guard. Both owned Luna High assistants were completed and interrupted again. Process audit found no Session Lens app/helper, Playwright, Semgrep, signing/notarization, packaging or release-upload work process (only the audit shell/rg matched). No thread-attached automation file exists. All work/test commands are terminal; no active checker or heartbeat remains.
+
+The updated guard remains: fresh baseline on explicit resume; actual checks at most60seconds apart; stop at **>=95% used / <=5% remaining** in any applicable window OR an observed in-work reset to100% remaining. The actual goal objective still contains the older10% text; the explicit October27 user decision overrides it. Do not claim that objective text was edited. Retry unavailable readings once, then stop if still unknown. Never redeem resets, buy credits, switch accounts/providers or resume automatically.
+
 ## Qualified 1.2.0 checkpoint: October 27, 2026
 
 Candidate 1.2.0 is signed, notarized and stapled. Full installed-DMG gate: 43/43 pass; 55 Node and clean-install Node tests pass, six build outputs byte-identical. Exact artifact hashes/submission IDs are in docs/compact-release-evidence.json. Final archives are retained in .local/verification-2026-10-27/artifacts-final. Stage path is recorded in release-stage.txt; disposable installed app path is recorded in install-root.txt. No product source changed after signing. Historical failed/partial test runs and measured signed shutdown delays remain retained; final lifecycle deadlines are evidence-based 15 seconds with actual exit codes and SQLite integrity preserved.

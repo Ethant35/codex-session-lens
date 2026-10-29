@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import type { Preferences, Provenance, Session, Snapshot } from '../shared';
+import type { CheckpointView, Preferences, Provenance, Session, Snapshot } from '../shared';
 
 const number = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 });
 
@@ -47,6 +47,39 @@ function LocalName({ name, save, busy }: { name: string; save(label: string): Pr
       <button className="quiet-button" disabled={busy} type="submit">Save name</button>
       {saved && <span className="saved-name" role="status">Name saved</span>}
     </form>
+  </details>;
+}
+
+function Checkpoints({ points, busy, act }: { points: CheckpointView[]; busy: boolean;
+  act(action: 'create' | 'select' | 'delete', value: string): Promise<boolean> }) {
+  const [name, setName] = useState('');
+  const [saved, setSaved] = useState(false);
+  const selected = points.find(point => point.selected);
+  return <details className="checkpoints"><summary>Checkpoints{selected ? ` · ${selected.name}` : ''}</summary>
+    {points.length > 0 && <label className="field">Compare from<select aria-label="Compare from checkpoint" disabled={busy} value={selected?.id ?? ''} onChange={event => { setSaved(false); void act('select', event.target.value); }}>
+      <option value="" disabled>Select a checkpoint</option>
+      {points.map(point => <option key={point.id} value={point.id}>{point.name} · {formatTime(point.createdAt)}</option>)}
+    </select></label>}
+    {selected && <div className="checkpoint-result" aria-label="Changes since checkpoint">
+      <div className="checkpoint-grid">
+        <Metric label="Observed input change" value={selected.delta?.input} testId="checkpoint-input" />
+        <Metric label="Observed output change" value={selected.delta?.output} testId="checkpoint-output" />
+        <Metric label="Cached input change · included in input" value={selected.delta?.cached} testId="checkpoint-cached" />
+        <Metric label="Newly observed compactions" value={selected.observedCompactions} testId="checkpoint-compactions" />
+      </div>
+      <p className="field-hint">Baseline usage sample: {formatTime(selected.totalTimestamp)}</p>
+      {selected.notes.map(note => <p className="field-hint" key={note}>{note}</p>)}
+      <button type="button" className="danger-link" disabled={busy} onClick={() => { setSaved(false); void act('delete', selected.id); }}>Delete checkpoint</button>
+    </div>}
+    {saved && <span role="status">Checkpoint saved</span>}
+    <p className="field-hint" id="checkpoint-help">Changes use observed records, including late arrivals. Missing records are not counted.</p>
+    <details className="new-checkpoint" open={points.length === 0}><summary>New checkpoint</summary>
+    <form onSubmit={event => { event.preventDefault(); void act('create', name.trim() || `Checkpoint ${points.length + 1}`).then(ok => { if (ok) { setName(''); setSaved(true); } }); }}>
+      <label className="field">Checkpoint name<input aria-label="Checkpoint name" aria-describedby="checkpoint-help" value={name} maxLength={80} placeholder={`Checkpoint ${points.length + 1}`} onChange={event => { setName(event.target.value); setSaved(false); }} /></label>
+      <button type="submit" className="quiet-button" disabled={busy || points.length >= 20}>Save checkpoint</button>
+      {points.length >= 20 && <p className="field-hint">20 checkpoints saved. Delete one to save another.</p>}
+    </form>
+    </details>
   </details>;
 }
 
@@ -199,7 +232,7 @@ function App() {
     </section>}
 
     {snapshot && !snapshot.recovery && prefs?.sampleMode && prefs.onboardingCompleted !== false && <div className="sample-notice">
-      <div role="status" aria-live="polite"><strong>Synthetic sample data</strong><span> This example is synthetic and was not read from your session folders.</span></div>
+      <div role="status" aria-live="polite"><strong>Synthetic sample data</strong></div>
       <button className="quiet-button" type="button" disabled={busy} onClick={() => void finishSetup(false)}>Use my sessions</button>
     </div>}
 
@@ -249,6 +282,8 @@ function App() {
           </div>
         </div>
         {selected.warnings.length > 0 && <div className="warnings" role="status">{selected.warnings.map((warning, index) => <p key={`${index}-${warning}`}>{warning}</p>)}</div>}
+        {!prefs?.sampleMode && <Checkpoints key={selected.id} points={snapshot.checkpoints ?? []} busy={busy}
+          act={(action, value) => mutate(() => window.lens.checkpoint(action, selected.id, value))} />}
         <details className="summary-details" open={!prefs?.compact}><summary>Details</summary>
           {!prefs?.sampleMode && <LocalName key={selected.id} name={localName(selected) ?? ''} save={label => mutate(() => window.lens.alias(selected.id, label))} busy={busy} />}
           <div className="details-fields">
@@ -281,7 +316,6 @@ function App() {
         </details>
       </section>
     </> : snapshot && !snapshot.recovery && prefs?.onboardingCompleted !== false ? <section className="empty-card">
-      <div className="empty-illustration" aria-hidden="true"><span /><span /><span /></div>
       <h2>{sessions.length ? 'Select a session' : 'No local sessions'}</h2>
       <p>{sessions.length ? 'Use the session selector above.' : 'Review your session folders in Settings, or start a Codex session and rescan.'}</p>
       <button className="quiet-button" type="button" onClick={() => void mutate(() => window.lens.rescan())}>Rescan sessions</button>
@@ -299,17 +333,17 @@ function App() {
       <h3 className="folders-title">Session folders</h3>
       <FolderFields text={directoriesText} setText={editFolders} busy={busy} error={actionError} choose={() => void chooseFolders()} prefix="settings" />
       <div className="form-actions"><button type="button" className="primary-button" disabled={busy} onClick={() => { const directories = directoriesText.split('\n').map(item => item.trim()).filter(Boolean); void mutate(() => window.lens.preferences({ directories })).then(saved => { if (saved) setEditingDirectories(false); }); }}>Save directories</button>
-        {clearPending ? <><span className="confirm-copy">This clears saved telemetry and local names, then pauses ingestion.</span><button className="danger-button" type="button" disabled={busy} onClick={() => { void mutate(() => window.lens.clear()); setClearPending(false); }}>Confirm clear</button><button type="button" className="quiet-button" onClick={() => setClearPending(false)}>Cancel</button></> : <button type="button" className="danger-link" onClick={() => setClearPending(true)}>Clear telemetry</button>}</div>
+        {clearPending ? <><span className="confirm-copy">This clears telemetry, local names and checkpoints, then pauses ingestion.</span><button className="danger-button" type="button" disabled={busy} onClick={() => { void mutate(() => window.lens.clear()); setClearPending(false); }}>Confirm clear</button><button type="button" className="quiet-button" onClick={() => setClearPending(false)}>Cancel</button></> : <button type="button" className="danger-link" onClick={() => setClearPending(true)}>Clear telemetry</button>}</div>
       <div className="diagnostics">
         <div className="diagnostics-head"><span className="section-label">DIAGNOSTICS</span><span>{snapshot?.diagnostics.files ?? 0} files scanned</span></div>
         <div className="diagnostic-stats"><span><b>{snapshot?.diagnostics.errors ?? 0}</b> ingestion errors</span><span><b>{snapshot?.diagnostics.blockedRequests ?? 0}</b> blocked requests</span><span>Last scan <b>{formatTime(snapshot?.diagnostics.lastScan)}</b></span></div>
         {(snapshot?.diagnostics.messages ?? []).length > 0 ? <ul>{snapshot!.diagnostics.messages.map((message, index) => <li key={`${index}-${message}`}>{message}</li>)}</ul> : <p className="subdued">No diagnostic messages.</p>}
       </div>
       <details className="help-details"><summary>About selection and updates</summary><p>Selection is manual. Session Lens cannot identify your foreground Codex chat. Local names are labels you assign, not verified chat titles. Prompts and messages are not collected.</p><p>To update, download the next release from github.com/Ethant35/codex-session-lens/releases, quit Session Lens, and replace the app in Applications. Your cache and settings stay on this Mac.</p></details>
-      <div className="setup-replay"><p>Replay folder setup or try the synthetic sample.</p><button type="button" className="text-button" disabled={busy} onClick={() => { setSettingsOpen(false); void setPreference({ onboardingCompleted: false, sampleMode: false }); }}>Show setup</button></div>
+      <div className="setup-replay"><button type="button" className="text-button" disabled={busy} onClick={() => { setSettingsOpen(false); void setPreference({ onboardingCompleted: false, sampleMode: false }); }}>Show setup</button></div>
     </section>}
 
-    <footer className="footer"><span>Local only · prompts are not displayed</span><span>{busy ? 'Saving…' : snapshot?.recovery ? 'Cache unavailable' : prefs?.sampleMode ? 'Sample · no live scan' : prefs?.onboardingCompleted === false ? 'Choose folders to begin' : prefs?.paused ? 'Ingestion paused' : 'Watching session folders'}</span></footer>
+    <footer className="footer"><span>{busy ? 'Saving…' : snapshot?.recovery ? 'Cache unavailable' : prefs?.sampleMode ? 'Sample · no live scan' : prefs?.onboardingCompleted === false ? 'Choose folders to begin' : prefs?.paused ? 'Ingestion paused' : 'Watching session folders'}</span></footer>
   </main>;
 }
 

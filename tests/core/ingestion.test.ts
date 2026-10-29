@@ -22,6 +22,25 @@ const count = (id: string, input: number, second: number, extra: Record<string, 
 }, second);
 const session = (id: string, rows: string[]) => [record('session_meta', { id }), ...rows].join('\n') + '\n';
 
+test('current paired usage formats preserve a matching context estimate without adding totals twice', async t => {
+  const f=await fixture(t),path=join(f.source,'paired.jsonl'),store=new Store(f.db);t.after(()=>store.close());
+  const detail=(second:number,input=100)=>record('token_usage_record',{
+    thread_id:'paired',thread_token_usage:{input_tokens:input,output_tokens:20,cached_input_tokens:5,cache_write_input_tokens:7},
+    usage:{input_tokens:input,output_tokens:20,cached_input_tokens:5,total_tokens:input+20,cache_write_input_tokens:7},
+  },second);
+  await writeFile(path,session('paired',[detail(1),count('paired',100,1,{model_context_window:1000})]));
+  const ingestor=new Ingestor(store);await ingestor.scan([f.source]);
+  assert.deepEqual(ingestor.sessions.get('paired')?.total,{input:100,output:20,cached:5});
+  assert.equal(ingestor.sessions.get('paired')?.context?.percent,12);
+  assert.equal(ingestor.sessions.get('paired')?.sources?.latest?.event,'token_count');
+  await ingestor.scan([f.source]);assert.equal(ingestor.sessions.get('paired')?.total?.input,100);
+  await appendFile(path,detail(2,200)+'\n');await ingestor.scan([f.source]);
+  assert.equal(ingestor.sessions.get('paired')?.context,null,'a newer usage record without a window cannot reuse old context');
+  await appendFile(path,count('paired',201,2,{model_context_window:1000})+'\n');await ingestor.scan([f.source]);
+  assert.equal(ingestor.sessions.get('paired')?.context,null,'disagreeing paired usage remains unavailable');
+  assert.equal(ingestor.sessions.get('paired')?.total,null);
+});
+
 async function fixture(t: { after(fn: () => void): void }) {
   const root = await mkdtemp(join(tmpdir(), 'lens-core-'));
   t.after(() => rm(root, { recursive: true, force: true }));

@@ -1,7 +1,7 @@
 # Compact HUD release qualification
 Author: Ethan
 Date: October 27, 2026
-Candidate: 1.2.0. Publication and final downloaded-byte checks are pending.
+Released: 1.2.0. Published October 27, 2026; public-download verification passed.
 
 ## Changes
 
@@ -21,7 +21,7 @@ Evidence: ignored `.local/verification-2026-10-27/` and `static_analysis_semgrep
 
 Apple Silicon/macOS 27.2 is the tested target. Native chooser tests mock the Electron dialog response, while checking draft/cancel/Save behavior. No unfamiliar-user study or manual VoiceOver listening is claimed. No paid model call or private-history reread was made for this change. Earlier core load/real-source evidence remains dated and is not presented as a fresh run. Automatic foreground-chat switching, remote/compressed logs and unqualified platforms remain unsupported.
 
-## Signed candidate
+## Signed release
 
 Developer ID Application: Ethan Tarnarider, Team Z2SL92S4B6; hardened runtime with allow-jit only. App submission `7eaf200b-c65f-4588-9a9c-2be390257940` and DMG submission `b80ee534-e65f-4244-92fe-a50093f000c5` were Accepted with no reported issues. App and DMG tickets validate; Gatekeeper accepts both. The final ZIP was created after app stapling.
 
@@ -31,4 +31,4 @@ Post-staple hashes:
 - DMG: `c569006ad332a14c9c7106f52a89f96d46b393b22efcf27a442eefa3bb9c1617`
 - app.asar: `e4dcc06a5dbfde76555af505f27f80121e34345fff58c80687c2d659491c62c5`
 
-The isolated signed-app reinstall/data-removal journey passed. The copied DMG app retains the same asar hash and passes signature and Gatekeeper checks. All 43 checks pass against this installed copy, including upgrade/rollback and reinstall. Public delivery and final downloaded-byte checks remain pending.
+The isolated signed-app reinstall/data-removal journey passed. The copied DMG app retains the same asar hash and passes signature and Gatekeeper checks. All 43 checks pass against this installed copy, including upgrade/rollback and reinstall. Unauthenticated public ZIP, DMG and checksum downloads matched the sealed files. Both downloaded app copies and the quarantined DMG passed signature, Gatekeeper and ticket checks. All 43 hidden tests passed on the app installed from the public DMG, with zero failures, skips or retries. Evidence: `.local/verification-2026-10-27/public-{hashes,installed}.json` and `public-security.txt`. [Published release](https://github.com/Ethant35/codex-session-lens/releases/tag/v1.2.0); merged PR5, commit `1960118b2b91d9f4ab51c8c0ff7ab7cf9b6a9645`.

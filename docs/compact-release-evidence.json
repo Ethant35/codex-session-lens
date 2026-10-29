@@ -15,7 +15,7 @@
     }
   ],
   "date": "2026-10-27",
-  "status": "qualified-awaiting-public-delivery",
+  "status": "published-public-download-verified",
   "nodeTests": 55,
   "cleanNodeTests": 55,
   "identicalBuildOutputs": 6,
@@ -33,5 +33,13 @@
     "No manual VoiceOver listening",
     "No unfamiliar-user study",
     "Semgrep Community: 15 rule errors and 6 partial renderer parses"
-  ]
+  ],
+  "releaseUrl": "https://github.com/Ethant35/codex-session-lens/releases/tag/v1.2.0",
+  "publicDownloadTests": 43,
+  "publicDownloadFailures": 0,
+  "publicDownloadSkips": 0,
+  "publicDownloadRetries": 0,
+  "publicArtifactHashesMatch": true,
+  "publicSignatureGatekeeperTickets": "passed",
+  "releaseCommit": "1960118b2b91d9f4ab51c8c0ff7ab7cf9b6a9645"
 }

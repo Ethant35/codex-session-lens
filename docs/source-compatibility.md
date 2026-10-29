@@ -26,3 +26,16 @@ The local compatibility inventory found this header/inherited-parent pattern in 
 ## Limits
 
 Ordinal-based filtering applies only to sources with the validated metadata shape above. The scanner does not infer fork boundaries for older or incomplete metadata. In those files, conflicting session identities continue to block the remainder of the file, preserving the conservative behavior. No source file is changed.
+
+
+## Current telemetry check, October 28, 2026
+
+The current [Codex app-server documentation](https://learn.chatgpt.com/docs/app-server) describes `thread/tokenUsage/updated` notifications and `contextCompaction` items; the older `thread/compacted` notification is deprecated. Those are live RPC shapes, not the on-disk rollout format. Session Lens continues to read local JSONL only; it does not connect to app-server or start a model turn.
+
+A read-only, bounded local inventory examined at most 8 MiB from each of 12 recently modified October 27/28 rollouts (51,815,450 bytes). It found 944 `token_usage_record`, 953 `token_count`, 12 top-level `compacted` records, and 19 timestamps shared by both usage formats. Only aggregate counts and field names were retained in the ignored compatibility report. No prompts, session IDs, account values or full paths were exported. This sample does not establish compatibility with every Codex release or all history.
+
+Current records include `cache_write_input_tokens` in usage objects. The parser reads input, output and cached-input counters and ignores that extra field; it does not add cache-write counts to input or claim a price estimate. Compacted records can contain replacement history, resume metadata, window metadata and a latest usage record. Only the outer compaction marker and timestamp are retained; nested message/history/usage content is not read into the cache. Duplicate compaction records at one timestamp count once; this is an observed timestamp count, not proof of all compactions performed.
+
+The paired-format inventory exposed a context-estimate defect. A detailed record has no context-window field and used to invalidate a matching same-time `token_count` estimate. Version 1.3.0 uses the complete same-time sample when usage agrees. Conflicting samples remain unavailable, and a later detailed record without a window invalidates an older estimate. Existing cached observations use the same reducer when sources are rescanned. A cache-only session retains its earlier conservative snapshot until newer evidence is projected.
+
+Synthetic regression coverage: `tests/core/ingestion.test.ts` checks paired records, optional cache-write fields, replay, conflicting counters and later missing-window invalidation. Existing fork and identity rules remain unchanged. The live metadata inventory is separate from deterministic synthetic accounting tests and does not constitute a new paid model call.

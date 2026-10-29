@@ -29,7 +29,7 @@ test('hidden prior-version upgrade and rollback preserve real prior-version cach
     expect(await run.app.evaluate(({ app }) => app.getVersion())).toBe(process.env.LENS_BASELINE_VERSION || '1.0.1');
     await run.page.getByTestId('session-prior-version').click();
     await expect(run.page.getByTestId('total-input')).toHaveText('1,234');
-    if (baselineVersion === '1.1.0') {
+    if (baselineVersion !== '1.0.1') {
       await run.page.evaluate(() => window.lens.alias('prior-version', 'Work Mac'));
       expect((await run.page.evaluate(() => window.lens.snapshot())).preferences.aliases).toMatchObject({ 'prior-version': 'Work Mac' });
     }
@@ -38,18 +38,20 @@ test('hidden prior-version upgrade and rollback preserve real prior-version cach
     await copyFile(join(data, 'telemetry.sqlite'), join(root, 'before-upgrade.sqlite'));
 
     run = await launch(current);
-    expect(await run.app.evaluate(({ app }) => app.getVersion())).toBe('1.2.0');
+    expect(await run.app.evaluate(({ app }) => app.getVersion())).toBe('1.3.0');
     const state = await run.page.evaluate(() => window.lens.snapshot());
     expect(state.preferences).toMatchObject({ theme: 'dark', compact: true, selectedId: 'prior-version', onboardingCompleted: true });
     await expect(run.page.getByRole('region', { name: 'Getting started' })).toBeHidden();
     await expect(run.page.getByTestId('total-input')).toHaveText('1,234');
     await expect(run.page.getByTestId('total-cached')).toHaveText('500');
-    expect(state.preferences.aliases).toMatchObject(baselineVersion === '1.1.0' ? { 'prior-version': 'Work Mac' } : {});
+    expect(state.preferences.aliases).toMatchObject(baselineVersion !== '1.0.1' ? { 'prior-version': 'Work Mac' } : {});
     await run.page.evaluate(() => window.lens.preferences({ showProjectLabels: true }));
     await run.page.evaluate(() => window.lens.rescan());
     const upgradedPage=run.page;
     await expect.poll(async () => (await upgradedPage.evaluate(() => window.lens.snapshot())).sessions.find(s => s.id === 'prior-version')?.projectLabel).toBe('codex-session-lens-fixture');
     await expect.poll(async () => (await upgradedPage.evaluate(() => window.lens.snapshot())).preferences.showProjectLabels).toBe(true);
+    await run.page.evaluate(() => window.lens.checkpoint('create','prior-version','Upgrade checkpoint'));
+    const checkpointId=(await run.page.evaluate(() => window.lens.snapshot())).checkpoints![0].id;
     await run.close(); run = undefined;
 
     // Simulate the older app saving its supported preferences while the new
@@ -61,7 +63,7 @@ test('hidden prior-version upgrade and rollback preserve real prior-version cach
     await run.page.evaluate(() => window.lens.preferences({ theme: 'dark', compact: true }));
     const rolledBack = await run.page.evaluate(() => window.lens.snapshot());
     expect(rolledBack.preferences).toMatchObject({ theme: 'dark', compact: true, selectedId: 'prior-version' });
-    if (baselineVersion === '1.1.0') expect(rolledBack.preferences.aliases).toMatchObject({ 'prior-version': 'Work Mac' });
+    if (baselineVersion !== '1.0.1') expect(rolledBack.preferences.aliases).toMatchObject({ 'prior-version': 'Work Mac' });
     await run.close(); run = undefined;
 
     const rollbackDb = new DatabaseSync(join(data, 'telemetry.sqlite'), { readOnly: true });
@@ -77,12 +79,15 @@ test('hidden prior-version upgrade and rollback preserve real prior-version cach
     expect(afterForwardUpgrade.preferences.showProjectLabels).toBe(persistedOptIn);
     expect(afterForwardUpgrade.sessions.find(s => s.id === 'prior-version')?.projectLabel)
       .toBe(persistedOptIn ? 'codex-session-lens-fixture' : undefined);
-    expect(afterForwardUpgrade.preferences.aliases).toMatchObject(baselineVersion === '1.1.0' ? { 'prior-version': 'Work Mac' } : {});
+    expect(afterForwardUpgrade.preferences.aliases).toMatchObject(baselineVersion !== '1.0.1' ? { 'prior-version': 'Work Mac' } : {});
+    expect(afterForwardUpgrade.checkpoints?.find(p=>p.selected)?.id).toBe(checkpointId);
+    expect(afterForwardUpgrade.checkpoints?.[0].delta).toEqual({input:0,output:0,cached:0});
     await rename(join(root, 'retained-source.jsonl'), file);
     await appendTokenCount(file, 'prior-version', { total: { input: 1500, output: 300, cached: 600 },
       latest: { input: 200, output: 100, cached: 50 }, contextWindow: 1000, timestamp: '2026-10-22T10:00:02Z' });
     await run.page.evaluate(() => window.lens.rescan());
     await expect(run.page.getByTestId('total-input')).toHaveText('1,500');
     await expect(run.page.getByTestId('total-output')).toHaveText('300');
+    expect((await run.page.evaluate(() => window.lens.snapshot())).checkpoints?.[0].delta).toEqual({input:266,output:100,cached:100});
   } finally { await run?.close(); await rm(root, { recursive: true, force: true }); }
 });
