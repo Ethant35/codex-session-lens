@@ -3,7 +3,7 @@ A local-first macOS companion HUD for individual Codex sessions. It keeps cumula
 
 ## Install
 
-[Download Session Lens 1.2.0 for Apple Silicon](https://github.com/Ethant35/codex-session-lens/releases/download/v1.2.0/Codex.Session.Lens-1.2.0-arm64.dmg). The app is Developer ID signed, Apple notarized and stapled. A ZIP and final checksums are on the [release page](https://github.com/Ethant35/codex-session-lens/releases/tag/v1.2.0).
+[Download Session Lens 1.3.0 for Apple Silicon](https://github.com/Ethant35/codex-session-lens/releases/download/v1.3.0/Codex.Session.Lens-1.3.0-arm64.dmg). The app is Developer ID signed, Apple notarized and stapled. A ZIP and final checksums are on the [release page](https://github.com/Ethant35/codex-session-lens/releases/tag/v1.3.0).
 
 Open the DMG and drag **Codex Session Lens** into Applications. Open the app, review the suggested Codex folders or use **Choose folders…**, then scan and select a session. Give it an optional private local name so you can find it again. Setup can be skipped or replayed; the sample is synthetic. See the [first-use, update and recovery guide](docs/usability-release.md). Stop if macOS reports a security warning; check the official release and checksums instead of bypassing Gatekeeper.
 
@@ -11,7 +11,7 @@ Requires Apple Silicon and a macOS version supported by Electron 45. Validated o
 
 ## Use
 
-Version 1.3.0 adds [session checkpoints](docs/checkpoints.md) in the HUD and CLI. Its release qualification is tracked separately from the published 1.2.0 artifacts.
+Open **Checkpoints** to save a baseline and compare observed token changes and compactions. See [checkpoint use and CLI commands](docs/checkpoints.md).
 
 - Search and select a session manually; Cmd+K focuses search. Selection is saved and never changed just because another session becomes active. A name you assign is a private local alias for that observed session ID, not a title read from its prompts. If there is no alias, identify sessions by model, date or ID.
 - The compact HUD keeps the selected session, cumulative input/output and last-request context estimate in view. Open **Details** for identifiers, cached input, request usage and provenance, compaction history and child activity. Cached input is a subset of input.

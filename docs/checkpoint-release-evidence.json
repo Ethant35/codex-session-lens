@@ -2,7 +2,7 @@
   "author": "Ethan",
   "version": "1.3.0",
   "date": "2026-10-28",
-  "status": "qualified-awaiting-public-delivery",
+  "status": "published-public-download-verified",
   "nodeTests": 67,
   "cleanNodeTests": 67,
   "identicalBuildOutputs": 6,
@@ -34,5 +34,14 @@
     "Semgrep Community: 15 rule errors and 6 partial renderer parses",
     "Bounded real-source metadata inventory, not full-history compatibility or a paid model turn",
     "Observation differences, not exact wall-clock billing"
-  ]
+  ],
+  "sourceCommit": "6b4cfe57a56467e306790e9a71ef9c887befdbc2",
+  "releaseCommit": "d73d45032bd194e341d00820f26916ca626b1881",
+  "releaseUrl": "https://github.com/Ethant35/codex-session-lens/releases/tag/v1.3.0",
+  "publicDownloadTests": 45,
+  "publicDownloadFailures": 0,
+  "publicDownloadSkips": 0,
+  "publicDownloadRetries": 0,
+  "publicArtifactHashesMatch": true,
+  "publicSignatureGatekeeperTickets": "passed"
 }

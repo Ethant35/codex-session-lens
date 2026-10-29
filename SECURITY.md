@@ -9,7 +9,7 @@ Settings → Clear telemetry deletes the local telemetry observations, projected
 
 Renderer Node integration is disabled; context isolation, renderer sandboxing and web security are enabled. IPC checks sender identity and input shape. The native folder chooser returns only user-selected directory paths; persistence requires explicit Save. No arbitrary path reads are exposed to the renderer. Navigation, new windows, webviews, permissions and external requests are denied. There is no auto-updater or crash-upload configuration.
 
-Published 1.2.0 artifacts are Developer ID signed and Apple notarized, with stapled app and DMG tickets. Development packages from npm run package:mac remain unsigned by the distribution identity. Do not bypass Gatekeeper warnings; verify that the download came from the official repository release and matches its checksums.
+Published 1.3.0 artifacts are Developer ID signed and Apple notarized, with stapled app and DMG tickets. Development packages from npm run package:mac remain unsigned by the distribution identity. Do not bypass Gatekeeper warnings; verify that the download came from the official repository release and matches its checksums.
 
 Report security issues privately through the repository's GitHub security reporting channel if available. Otherwise contact the maintainer before posting sensitive details; do not include conversation logs or secrets in public issues.
 
