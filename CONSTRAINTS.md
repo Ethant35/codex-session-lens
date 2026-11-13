@@ -3,7 +3,7 @@ Author: Ethan
 Baseline: v1.0.1 / 399d77dcc83da42baaa87b70b90a6e14088af939
 
 ## Product and security boundary
-A local, single-user, offline macOS companion for users who have readable Codex JSONL session files. The production qualification target is Apple Silicon on the locally tested macOS version. Other operating systems and compressed/remote-only rollouts are unsupported until qualified. No hosted service, accounts, API keys, analytics, automatic uploads or Accessibility access. Source files are read-only and untrusted. SQLite is a local cache, not an authoritative source or an encrypted vault.
+A local, single-user, offline macOS companion for users who have readable Codex JSONL session files. The production qualification target is Apple Silicon on the locally tested macOS version. Other operating systems and remote-only rollouts are unsupported until qualified. Compressed rollouts are supported only by the on-demand weekly history scanner after its format/accounting checks; the continuously watched HUD cache still reads plain JSONL only. No hosted service, accounts, API keys, analytics, automatic uploads or Accessibility access. Source files are read-only and untrusted. SQLite is a local cache, not an authoritative source or an encrypted vault.
 
 ## Release gates
 - Zero known unresolved correctness, privacy or recovery defects in supported workflows. Unsupported/ambiguous source data must be explicit, never fabricated.

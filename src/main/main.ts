@@ -2,6 +2,8 @@ import { app, BrowserWindow, ipcMain, session, screen, Menu, dialog } from 'elec
 import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { pathToFileURL } from 'node:url';
+import { Worker } from 'node:worker_threads';
+import type { WeeklyState } from '../shared';
 import { CacheHost } from './cache';
 import { LocalDiagnostics } from './diagnostics';
 import type { Snapshot } from '../shared';
@@ -41,6 +43,17 @@ const snapshot = (): Snapshot => {
   const value = lens.snapshot(); value.diagnostics.blockedRequests = blockedRequests; return value;
 };
 const scan = () => lens.rescan();
+let weekly: WeeklyState = { status: 'idle' };
+let weeklyWorker: Worker | null = null;
+const stopWeekly = () => {
+  const worker = weeklyWorker; weeklyWorker = null;
+  if (worker) {
+    worker.postMessage('cancel');
+    const deadline = setTimeout(() => void worker.terminate(), 2000); deadline.unref();
+    worker.once('exit', () => clearTimeout(deadline));
+  }
+  if (weekly.status === 'running') weekly = { status: 'cancelled', message: 'Scan cancelled. No report was saved.' };
+};
 
 function createWindow() {
   const prefs = snapshot().preferences;
@@ -54,7 +67,7 @@ function createWindow() {
   const remember = () => { clearTimeout(saveBounds); saveBounds = setTimeout(() => { if (!closing && win && !win.isDestroyed()) void lens.saveBounds(win.getBounds()).catch(error => diagnostics?.record('bounds_failed', error)); },200); };
   win.on('move',remember); win.on('resize',remember);
   win.on('close',() => { if (!closing && win) void lens.saveBounds(win.getBounds()).catch(error => diagnostics?.record('bounds_failed', error)); });
-  win.on('closed',() => {win = null;});
+  win.on('closed',() => {stopWeekly(); win = null;});
   void win.loadFile(renderer);
 }
 
@@ -76,6 +89,37 @@ app.whenReady().then(async () => {
     try { return await action(...args); } catch (error) { diagnostics?.record('operation_failed', error); throw new Error('Local operation failed. Check settings and directory access.'); }
   });
   handle('lens:snapshot',snapshot);
+  handle('lens:weekly-status', () => weekly);
+  handle('lens:weekly-cancel', () => { stopWeekly(); return weekly; });
+  handle('lens:weekly-scan', (start: unknown, end: unknown) => {
+    const state = snapshot();
+    if (closing || weeklyWorker) return weekly;
+    if (state.recovery || state.preferences.sampleMode || state.preferences.onboardingCompleted === false || state.preferences.directories.length === 0)
+      throw new Error('Use live session folders before scanning.');
+    if (typeof start !== 'string' || typeof end !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(end) || start > end)
+      throw new Error('Invalid date range');
+    weekly = { status: 'running', message: 'Reading session history…' };
+    const worker = new Worker(join(__dirname, 'weekly-runner.cjs'), { workerData: {
+      roots: state.preferences.directories, startDate: start, endDate: end,
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    } });
+    weeklyWorker = worker;
+    worker.once('message', result => {
+      if (weeklyWorker !== worker) return;
+      weekly = result.ok ? { status: 'complete', report: result.report } : { status: 'error', message: 'History scan failed. Check folders and try again.' };
+      weeklyWorker = null;
+    });
+    worker.once('error', error => {
+      if (weeklyWorker !== worker) return;
+      diagnostics?.record('operation_failed', error);
+      weekly = { status: 'error', message: 'History scan failed. Check folders and try again.' }; weeklyWorker = null;
+    });
+    worker.once('exit', () => {
+      if (weeklyWorker !== worker) return;
+      weeklyWorker = null; weekly = { status: 'error', message: 'History scan stopped before completion.' };
+    });
+    return weekly;
+  });
   let choosingDirectories = false;
   handle('lens:choose-directories', async () => {
     if (!win || choosingDirectories || closing) return null;
@@ -91,14 +135,19 @@ app.whenReady().then(async () => {
   });
   handle('lens:alias', async (id: unknown, label: unknown) => { await lens.alias(id, label); return snapshot(); });
   handle('lens:checkpoint', async (action: unknown, id: unknown, value: unknown) => { await lens.checkpoint(action, id, value); return snapshot(); });
-  handle('lens:recover',async (action: unknown) => { await lens.recover(action); diagnostics?.record(lens.snapshot().recovery ? 'cache_unavailable' : 'cache_recovered'); return snapshot(); });
+  handle('lens:recover',async (action: unknown) => { stopWeekly(); weekly = { status: 'idle' }; await lens.recover(action); diagnostics?.record(lens.snapshot().recovery ? 'cache_unavailable' : 'cache_recovered'); return snapshot(); });
   handle('lens:select',async (id: unknown) => { await lens.select(id); return snapshot(); });
   handle('lens:preferences',async (value: unknown) => {
+    const oldPrefs = snapshot().preferences;
     await lens.preferences(value);
+    const newPrefs = snapshot().preferences;
+    if (JSON.stringify(oldPrefs.directories) !== JSON.stringify(newPrefs.directories) || oldPrefs.paused !== newPrefs.paused || oldPrefs.sampleMode !== newPrefs.sampleMode || oldPrefs.onboardingCompleted !== newPrefs.onboardingCompleted) {
+      stopWeekly(); weekly = { status: 'idle' };
+    }
     win?.setAlwaysOnTop(snapshot().preferences.alwaysOnTop); return snapshot();
   });
   handle('lens:rescan',async () => {await scan(); return snapshot();});
-  handle('lens:clear',async () => { await lens.clear(); return snapshot(); });
+  handle('lens:clear',async () => { stopWeekly(); weekly = { status: 'idle' }; await lens.clear(); return snapshot(); });
   Menu.setApplicationMenu(Menu.buildFromTemplate([{label:'Codex Session Lens',submenu:[{role:'about'},{type:'separator'},{role:'hide'},{role:'quit'}]},{role:'editMenu'},{role:'windowMenu'}]));
   createWindow();
   const scanSafely = () => { void scan().catch(error => { if (!closing) diagnostics?.record('operation_failed', error); }); };
@@ -111,7 +160,7 @@ app.on('before-quit', event => {
   if (shutdownComplete || !lens) return;
   event.preventDefault();
   if (closing) return;
-  closing=true;
+  closing=true; stopWeekly();
   clearInterval(timer); clearTimeout(saveBounds);
   const bounds = win && !win.isDestroyed() ? win.getBounds() : undefined;
   void lens.close(bounds).then(() => { shutdownComplete = true; app.quit(); }, error => { diagnostics?.record('shutdown_failed', error); app.exit(1); });

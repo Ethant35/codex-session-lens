@@ -380,3 +380,30 @@ button, input, textarea, select { max-width: 100%; }
 
 .checkpoints input { width: 100%; min-width: 0; border: 1px solid var(--line-strong); border-radius: 8px; padding: 8px 10px; background: var(--panel); color: var(--text); }
 .new-checkpoint { margin-top: 8px; }
+
+/* Author: Ethan. Weekly reports remain separate from session telemetry. */
+.top-actions { flex-wrap: wrap; justify-content: flex-end; }
+.weekly-card { margin: 12px 0; padding: 14px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--panel); }
+.weekly-card h2 { margin: 0 0 8px; font-size: 18px; }
+.weekly-dates, .weekly-totals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.weekly-dates input { min-width: 0; width: 100%; border: 1px solid var(--line-strong); border-radius: 7px; background: var(--panel-soft); color: var(--text); padding: 8px; }
+.weekly-totals { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-block: 12px; }
+.weekly-totals > div:last-child { grid-column: 1 / -1; }
+.weekly-totals span, .weekly-totals strong { display: block; overflow-wrap: anywhere; }
+.weekly-totals span, .weekly-range { font-size: 12px; color: var(--muted); }
+.weekly-totals strong { font-size: 18px; white-space: nowrap; overflow-wrap: normal; font-variant-numeric: tabular-nums; }
+.weekly-projects { padding-left: 22px; }
+.weekly-projects > li { border-top: 1px solid var(--line); padding-block: 9px; }
+.weekly-projects summary { cursor: pointer; overflow-wrap: anywhere; }
+.weekly-projects summary strong { display: block; font-size: 13px; }
+.weekly-sessions { list-style: none; padding-left: 0; font-size: 12px; }
+.weekly-sessions > li { margin-top: 10px; padding: 8px; border: 1px solid var(--line); border-radius: 6px; }
+.weekly-sessions code { overflow-wrap: anywhere; }
+.weekly-sessions summary span { display: block; }
+.weekly-gaps { color: var(--warning-text); font-size: 13px; margin-block: 10px; }
+.weekly-gaps ul { padding-left: 20px; overflow-wrap: anywhere; }
+
+.weekly-help { margin-block: 10px; font-size: 12px; color: var(--muted); }
+.weekly-help summary { cursor: pointer; }
+
+@media (max-width: 400px) { .weekly-dates, .weekly-totals { grid-template-columns: minmax(0, 1fr); } }
