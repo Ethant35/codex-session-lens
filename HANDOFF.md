@@ -1,6 +1,10 @@
 # Session Lens handoff
 Author: Ethan
 
+## Weekly usage release 1.4.0
+
+Version 1.4.0 adds on-demand weekly reports for plain and compressed session logs. Projects and sessions can be expanded to inspect recorded usage and parent or child contributions. The Apple Silicon app and DMG have separate accepted Apple notarization submissions and stapled tickets. The app copied from the DMG passed Gatekeeper and the macOS distribution check. A hidden packaged scan matched an independent raw-log calculation for each project, session and descendant total. The upgrade check preserved existing cached history and settings. See the [weekly usage guide](docs/weekly-usage.md) and the [1.4.0 release](https://github.com/Ethant35/codex-session-lens/releases/tag/v1.4.0).
+
 ## Frozen contract complete: October 29, 2026
 
 The supported technical release contract passes: install, manual session identity/selection, conservative telemetry, checkpoints, restart and source/cache recovery with source preservation. The exact requirement map and limits are in docs/release-contract.md. Both Terra findings are closed by 1.3.1. The unfamiliar-user trial recommended via Sol is prepared in docs/unfamiliar-user-trial.md; no willing participant was available, so it remains explicitly pending and is not a release blocker or a passed test. No recruiting or recurring work was started.

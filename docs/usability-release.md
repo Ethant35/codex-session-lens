@@ -1,7 +1,7 @@
 # Download, first use and updates
 Author: Ethan
 
-This guide covers the signed, notarized and stapled 1.3.1 Apple Silicon release. Download from the repository's [1.3.1 release page](https://github.com/Ethant35/codex-session-lens/releases/tag/v1.3.1).
+This guide covers the signed, notarized and stapled 1.4.0 Apple Silicon release. Download from the repository's [1.4.0 release page](https://github.com/Ethant35/codex-session-lens/releases/tag/v1.4.0).
 ## Install and get a first result
 
 1. Download the Apple Silicon DMG for the released version and open it.

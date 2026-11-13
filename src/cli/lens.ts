@@ -7,11 +7,13 @@ import { parseArgs } from 'node:util';
 import { Store } from '../main/store';
 import { Ingestor } from '../main/ingestion';
 import { LensService } from '../main/service';
+import { scanWeekly } from '../main/weekly';
 
 const help = `Session Lens CLI — no Electron, windows, Dock icon, or app dialogs.
 
 Usage: lens scan --source DIRECTORY [--source DIRECTORY ...] [--cache DIRECTORY]
        lens checkpoint --cache DIRECTORY --session ID [--name NAME | --select ID | --delete ID]
+       lens weekly --source DIRECTORY [--source DIRECTORY ...] --start YYYY-MM-DD --end YYYY-MM-DD [--timezone IANA_ZONE]
        lens --help
 
 Reads local JSONL sources once and prints normalized sessions and diagnostics as JSON.
@@ -31,14 +33,16 @@ async function main() {
     options = parseArgs({ allowPositionals: true, options: {
       help: { type: 'boolean', short: 'h' },
       source: { type: 'string', multiple: true },
-      cache: { type: 'string' },
+      cache: { type: 'string' }, start: { type: 'string' }, end: { type: 'string' }, timezone: { type: 'string' },
       session: { type: 'string' }, name: { type: 'string' },
       select: { type: 'string' }, delete: { type: 'string' },
     } });
     if (options.values.help) { process.stdout.write(help); return; }
     const command = options.positionals[0], v = options.values;
-    if (options.positionals.length !== 1 || !['scan','checkpoint'].includes(command) ||
+    if (options.positionals.length !== 1 || !['scan','checkpoint','weekly'].includes(command) ||
         (v.cache !== undefined && !v.cache.trim())) throw new Error('Invalid arguments');
+    if (command === 'weekly' && (!v.source?.length || !v.start || !v.end || [v.cache,v.session,v.name,v.select,v.delete].some(x=>x!==undefined))) throw new Error('Invalid weekly arguments');
+    if (command !== 'weekly' && [v.start,v.end,v.timezone].some(x=>x!==undefined)) throw new Error('Invalid arguments');
     if (command === 'scan' && (!v.source?.length || v.source.some(s => !s.trim()) ||
         [v.session,v.name,v.select,v.delete].some(x => x !== undefined))) throw new Error('Invalid scan arguments');
     if (command === 'checkpoint' && (!v.cache || !v.session || v.source !== undefined ||
@@ -49,6 +53,11 @@ async function main() {
     return;
   }
 
+  if(options.positionals[0]==='weekly'){
+    const controller=new AbortController();let exit=130;const stop=()=>controller.abort();const terminate=()=>{exit=143;controller.abort();};process.once('SIGINT',stop);process.once('SIGTERM',terminate);
+    try{const v=options.values;const report=await scanWeekly(v.source!.map(s=>resolve(s)),v.start!,v.end!,{timeZone:v.timezone,signal:controller.signal,onProgress:n=>{if(n%100===0)process.stderr.write(`Scanned ${n} source files.\n`);}});process.stdout.write(JSON.stringify(report,null,2)+'\n');process.exitCode=report.gaps.length?2:0;}catch(error){if(controller.signal.aborted)process.exitCode=exit;else throw error;}finally{process.removeListener('SIGINT',stop);process.removeListener('SIGTERM',terminate);}
+    return;
+  }
   let temporary: string | undefined;
   let store: Store | undefined;
   let ingestor: Ingestor | undefined;

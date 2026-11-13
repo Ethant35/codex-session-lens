@@ -1,3 +1,4 @@
+import type { WeeklyReport } from './weekly-types';
 export interface Usage { input: number; output: number; cached: number; }
 export interface Provenance { file: string; line: number; event: string; timestamp: string; }
 export interface Session {
@@ -28,7 +29,14 @@ export interface Snapshot {
   checkpoints?: CheckpointView[];
   diagnostics: { errors: number; files: number; lastScan: string | null; messages: string[]; blockedRequests: number };
 }
+export interface WeeklyState {
+  status: 'idle' | 'running' | 'complete' | 'cancelled' | 'error';
+  report?: WeeklyReport; message?: string;
+}
 export interface LensAPI {
+  weeklyStatus(): Promise<WeeklyState>;
+  weeklyScan(startDate: string, endDate: string): Promise<WeeklyState>;
+  weeklyCancel(): Promise<WeeklyState>;
   checkpoint(action: 'create' | 'select' | 'delete', sessionId: string, value: string): Promise<Snapshot>;
   chooseDirectories(): Promise<string[] | null>;
   alias(id: string, label: string): Promise<Snapshot>;

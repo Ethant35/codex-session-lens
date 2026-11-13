@@ -1,6 +1,8 @@
 # Local acceptance
 
-Current 1.3.1 acceptance is mapped in the [frozen release contract](docs/release-contract.md), with [exact release evidence](docs/scan-warning-release-evidence.json). The technical contract passes; the unfamiliar-user trial remains pending and is not counted as passed. All results below are historical and retain their original version and scope.
+Release 1.4.0 qualification is recorded in [production readiness](docs/production-readiness.md). The following sections describe earlier releases.
+
+Historical 1.3.1 acceptance is mapped in the [frozen release contract](docs/release-contract.md), with [exact release evidence](docs/scan-warning-release-evidence.json). The technical contract passes; the unfamiliar-user trial remains pending and is not counted as passed. All results below are historical and retain their original version and scope.
 
 
 The completed v1.0.1 local audit is recorded in [docs/patch-audit.md](docs/patch-audit.md). The historical v1.0.0 record follows.

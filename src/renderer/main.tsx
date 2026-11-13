@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { WeeklyView } from './weekly-view';
 import { createRoot } from 'react-dom/client';
 import type { CheckpointView, Preferences, Provenance, Session, Snapshot } from '../shared';
 
@@ -89,6 +90,7 @@ function App() {
   const [actionError, setActionError] = useState(false);
   const [query, setQuery] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [weeklyOpen, setWeeklyOpen] = useState(false);
   const [directoriesText, setDirectoriesText] = useState('');
   const [editingDirectories, setEditingDirectories] = useState(false);
   const [clearPending, setClearPending] = useState(false);
@@ -188,6 +190,7 @@ function App() {
         <p className="brand-name">CODEX SESSION LENS</p>
       </div>
       <div className="top-actions">
+        <button className="quiet-button" type="button" aria-expanded={weeklyOpen} aria-controls="weekly-panel" onClick={() => setWeeklyOpen(value => !value)}>Weekly usage</button>
         <button className="quiet-button" type="button" onClick={() => setSettingsOpen(value => !value)} aria-expanded={settingsOpen} aria-controls={snapshot ? 'settings-panel' : undefined}>
           {settingsOpen ? 'Close settings' : 'Settings'}
         </button>
@@ -198,6 +201,8 @@ function App() {
     </header>
 
     <a className="skip-link" href={loadError ? '#load-error' : snapshot?.recovery ? '#recovery-state' : '#session-selection'}>Skip to current content</a>
+
+    {snapshot && prefs && <div id="weekly-panel" hidden={!weeklyOpen}><WeeklyView prefs={prefs} recovery={!!snapshot.recovery} /></div>}
 
     {snapshot === null && !loadError && <section id="session-selection" className="loading-state" role="status" aria-live="polite" tabIndex={-1}>Loading local session data…</section>}
 

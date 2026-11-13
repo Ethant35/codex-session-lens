@@ -1,6 +1,10 @@
 # Production readiness
 Author: Ethan
 
+## Weekly usage release 1.4.0
+
+Version 1.4.0 adds on-demand weekly reports for plain and compressed session logs. Projects and sessions can be expanded to inspect recorded usage and parent or child contributions. The Apple Silicon app and DMG have separate accepted Apple notarization submissions and stapled tickets. The app copied from the DMG passed Gatekeeper and the macOS distribution check. A hidden packaged scan matched an independent raw-log calculation for each project, session and descendant total. The upgrade check preserved existing cached history and settings. See the [weekly usage guide](weekly-usage.md) and the [1.4.0 release](https://github.com/Ethant35/codex-session-lens/releases/tag/v1.4.0).
+
 Frozen 1.3.1 contract: **PASS within documented scope**, with no demonstrated essential blocker. See the [requirement-to-evidence map](release-contract.md). The unfamiliar-user trial is prepared but pending; no human usability success is claimed. Runtime, installed-package and public-asset identity were refreshed without rerunning unchanged tests.
 
 Published and installed release **1.3.1**: 67 working and 67 clean Node tests, six identical build outputs, 47 signed hidden checks, four quarantined DMG checks, and 47 hidden checks against the actual updated installation passed. Public downloads match the qualified bytes. App and DMG notarization, tickets, signatures and Gatekeeper pass. The installed app was updated from 1.0.1; all 29 original data-file hashes remain unchanged and a verified backup is retained. Temporary build/download copies were removed. See [patch release qualification](scan-warning-release.md) and [exact evidence](scan-warning-release-evidence.json).
